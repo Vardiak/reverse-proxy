@@ -34,7 +34,6 @@ namespace http
          */
         EventWatcher(int fd, int flags);
 
-
         EventWatcher(const EventWatcher &) = delete;
         EventWatcher &operator=(const EventWatcher &) = delete;
         EventWatcher(EventWatcher &&) = delete;
@@ -48,7 +47,6 @@ namespace http
          * its own workflow by overriding this functor.
          */
         virtual void operator()() = 0;
-
 
         ev_io &watcher_get() noexcept
         {

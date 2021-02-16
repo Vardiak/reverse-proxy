@@ -3,7 +3,6 @@
 #include <istream>
 #include <sstream>
 
-
 namespace http
 {
     Response::Response(const STATUS_CODE &)

@@ -10,7 +10,6 @@ namespace http
         watcher_.data = reinterpret_cast<void *>(this);
     }
 
-
     void EventWatcher::event_callback(struct ev_loop *, ev_io *w, int)
     {
         auto ew = reinterpret_cast<EventWatcher *>(w->data);

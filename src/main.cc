@@ -1,4 +1,4 @@
-#    include "error/not-implemented.hh"
+#include "error/not-implemented.hh"
 
 int main()
 {

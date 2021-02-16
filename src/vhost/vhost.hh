@@ -8,7 +8,7 @@
 #include <openssl/ssl.h>
 
 #include "config/config.hh"
-#    include "error/not-implemented.hh"
+#include "error/not-implemented.hh"
 #include "request/request.hh"
 #include "request/response.hh"
 #include "vhost/connection.hh"
@@ -43,7 +43,6 @@ namespace http
          * \param conn Connection.
          */
         virtual void respond(Request &, std::shared_ptr<Connection>) = 0;
-
 
         inline const VHostConfig &conf_get() const noexcept
         {

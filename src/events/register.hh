@@ -52,7 +52,6 @@ namespace http
         template <typename EventWatcher, typename... Args>
         std::shared_ptr<EventWatcher> register_event(Args &&...);
 
-
         /**
          * \brief Unregister a given event watcher.
          *

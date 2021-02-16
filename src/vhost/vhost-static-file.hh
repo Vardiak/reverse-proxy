@@ -41,6 +41,5 @@ namespace http
          * Note that these iterators will only be useful starting from SRPS.
          */
         void respond(Request &, std::shared_ptr<Connection>) final;
-
     };
 } // namespace http

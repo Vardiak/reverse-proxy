@@ -6,9 +6,9 @@
 #pragma once
 
 #include "config/config.hh"
-#include "request/request.hh"
 #include "misc/addrinfo/addrinfo-iterator.hh"
 #include "misc/addrinfo/addrinfo.hh"
+#include "request/request.hh"
 #include "vhost/connection.hh"
 #include "vhost/vhost.hh"
 
