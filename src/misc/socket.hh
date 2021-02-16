@@ -6,7 +6,11 @@
 #pragma once
 
 #include <fcntl.h>
-#include <sys/sendfile.h>
+#ifdef __APPLE__
+#    include <sys/uio.h>
+#else
+#    include <sys/sendfile.h>
+#endif
 #include <sys/socket.h>
 #include <sys/types.h>
 

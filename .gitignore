@@ -1,3 +1,6 @@
+.vsls.json
+build-aux
+
 # http://www.gnu.org/software/automake
 
 Makefile.in
