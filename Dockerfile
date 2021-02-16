@@ -19,5 +19,8 @@ RUN pacman -Sy autoconf automake --noconfirm
 RUN pacman -Sy autoconf-archive --noconfirm
 
 RUN pacman -Sy openssl --noconfirm
+RUN pacman -Sy pkg-config --noconfirm
+RUN pacman -Sy libev --noconfirm
+RUN pacman -Sy boost --noconfirm
 
 CMD /bin/zsh

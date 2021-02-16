@@ -1,6 +1,16 @@
 .vsls.json
 build-aux
 
+config.h
+libtool
+*.o
+*.lo
+*.a
+*.la
+spider
+.DS_Store
+.libs
+
 # http://www.gnu.org/software/automake
 
 Makefile.in
