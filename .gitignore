@@ -7,6 +7,7 @@ libtool
 *.lo
 *.a
 *.la
+*.lai
 spider
 .DS_Store
 .libs
