@@ -6,6 +6,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace http
 {
@@ -27,7 +28,11 @@ namespace http
 
         ~VHostConfig() = default;
 
-        // FIXME: Add members to store the information relative to a vhost.
+        std::string ip;
+        int port;
+        std::string server_name;
+        std::string root;
+        std::string default_file;
     };
 
     /**
@@ -47,8 +52,7 @@ namespace http
 
         ~ServerConfig() = default;
 
-        /* FIXME: Add members to store the information relative to the
-           configuration of the server. */
+        std::vector<VHostConfig> vhosts;
     };
 
     /**

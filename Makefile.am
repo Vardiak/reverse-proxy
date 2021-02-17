@@ -36,6 +36,7 @@ lib_LTLIBRARIES = libspider.la
 
 SOURCES = \
           src/config/config.hh \
+          src/config/config.cc \
           src/error/init-error.hh \
           src/error/not-implemented.hh \
           src/error/parsing-error.hh \
@@ -99,11 +100,11 @@ libspider_la_SOURCES = \
                        $(NULL)
 
 if USING_CRITERION
-# check_PROGRAMS = test1
-# TESTS = $(check_PROGRAMS)
+ check_PROGRAMS = testsuite
+ TESTS = $(check_PROGRAMS)
 
-# test1_SOURCES = tests/unit/test1.cc
-# test1_CXXFLAGS = $(AM_CXXFLAGS) $(CRITERION_CFLAGS)
-# test1_CPPFLAGS = $(AM_CPPFLAGS)
-# test1_LDFLAGS = $(AM_LDFLAGS) $(CRITERION_LIBS)
+ testsuite_SOURCES = tests/unit/config.cc $(SOURCES)
+ testsuite_CXXFLAGS = $(AM_CXXFLAGS) $(CRITERION_CFLAGS)
+ testsuite_CPPFLAGS = $(AM_CPPFLAGS)
+ testsuite_LDFLAGS = $(AM_LDFLAGS) $(CRITERION_LIBS)
 endif

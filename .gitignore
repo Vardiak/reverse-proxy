@@ -11,6 +11,10 @@ libtool
 spider
 .DS_Store
 .libs
+.vscode
+*.log
+testsuite
+testsuite.trs
 
 # http://www.gnu.org/software/automake
 
