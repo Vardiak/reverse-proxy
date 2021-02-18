@@ -80,9 +80,12 @@ SOURCES = \
           src/vhost/connection.hh \
           src/vhost/dispatcher.hh \
           src/vhost/vhost-factory.hh \
+          src/vhost/vhost-factory.cc \
           src/vhost/vhost-reverse-proxy.hh \
           src/vhost/vhost-static-file.hh \
+          src/vhost/vhost-static-file.cc \
           src/vhost/vhost.hh \
+          src/vhost/vhost.cc \
           $(NULL)
 
 

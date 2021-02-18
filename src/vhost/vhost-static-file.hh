@@ -29,7 +29,7 @@ namespace http
          *
          * \param config VHostConfig virtual host configuration.
          */
-        explicit VHostStaticFile(const VHostConfig &);
+        explicit VHostStaticFile(const VHostConfig &config);
 
     public:
         /**
