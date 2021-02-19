@@ -4,17 +4,21 @@ namespace http
 {
     EventLoop::EventLoop()
     {
-        /* FIXME */
+        loop = ev_default_loop(0);
     }
 
-    EventLoop::EventLoop(struct ev_loop *)
+    EventLoop::EventLoop(struct ev_loop *l)
     {
-        /* FIXME */
+        loop = l;
     }
 
     EventLoop::~EventLoop()
     {
-        /* FIXME */
+        ev_loop_destroy(loop);
     }
 
+    void EventLoop::register_watcher(EventWatcher *watcher)
+    {
+        ev_io_start(loop, &watcher->watcher_get());
+    }
 } // namespace http

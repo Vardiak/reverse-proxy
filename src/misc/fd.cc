@@ -6,7 +6,8 @@ namespace misc
 {
     FileDescriptor::~FileDescriptor()
     {
-        /* FIXME */
+        if (fd_ != -1)
+            sys::close(fd_);
     }
 
     FileDescriptor &FileDescriptor::operator=(FileDescriptor &&fileDescriptor)
@@ -19,8 +20,7 @@ namespace misc
 
     FileDescriptor::operator int() const &
     {
-        /* FIXME */
-        return -1;
+        return fd_;
     }
 
 } // namespace misc

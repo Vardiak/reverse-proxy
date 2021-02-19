@@ -27,19 +27,19 @@ namespace http
         return -1;
     }
 
-    void DefaultSocket::bind(const sockaddr *, socklen_t)
+    void DefaultSocket::bind(const sockaddr *addr, socklen_t addrlen)
     {
-        /* FIXME */
+        sys::bind(fd_->fd_, addr, addrlen);
     }
 
-    void DefaultSocket::listen(int)
+    void DefaultSocket::listen(int backlog)
     {
-        /* FIXME */
+        sys::listen(fd_->fd_, backlog);
     }
 
-    void DefaultSocket::setsockopt(int, int, int)
+    void DefaultSocket::setsockopt(int level, int optname, int optval)
     {
-        /* FIXME */
+        sys::setsockopt(fd_->fd_, level, optname, &optval, sizeof(int));
     }
 
     void DefaultSocket::getsockopt(int, int, int &)

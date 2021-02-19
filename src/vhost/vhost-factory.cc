@@ -7,7 +7,7 @@ namespace http
 {
     shared_vhost VHostFactory::Create(VHostConfig config)
     {
-        // return nullptr;
-        return std::make_shared<VHostStaticFile>(config);
+        auto vhost = new VHostStaticFile(config);
+        return std::shared_ptr<VHostStaticFile>(vhost);
     }
 } // namespace http
