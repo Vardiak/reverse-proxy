@@ -6,6 +6,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "request/types.hh"
 #include "socket/socket.hh"
@@ -31,5 +32,7 @@ namespace http
         /* FIXME: Add members to store the information relative to the
         ** connection.
         */
+
+        std::string store;
     };
 } // namespace http

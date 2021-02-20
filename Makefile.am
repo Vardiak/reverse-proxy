@@ -45,6 +45,9 @@ SOURCES = \
           src/events/events.cc \
           src/events/events.hh \
           src/events/listener.hh \
+          src/events/listener.cc \
+          src/events/recv-request.cc \
+          src/events/recv-request.hh \
           src/events/register.cc \
           src/events/register.hh \
           src/events/register.hxx \
@@ -69,6 +72,7 @@ SOURCES = \
 	  src/misc/readiness/readiness.hh \
           src/request/error.cc \
           src/request/error.hh \
+          src/request/request.cc \
           src/request/request.hh \
           src/request/response.cc \
           src/request/response.hh \
@@ -106,7 +110,7 @@ if USING_CRITERION
  check_PROGRAMS = testsuite
  TESTS = $(check_PROGRAMS)
 
- testsuite_SOURCES = tests/unit/config.cc $(SOURCES)
+ testsuite_SOURCES = tests/unit/config.cc tests/unit/request.cc $(SOURCES)
  testsuite_CXXFLAGS = $(AM_CXXFLAGS) $(CRITERION_CFLAGS)
  testsuite_CPPFLAGS = $(AM_CPPFLAGS)
  testsuite_LDFLAGS = $(AM_LDFLAGS) $(CRITERION_LIBS)

@@ -68,6 +68,14 @@ namespace http
          */
         std::optional<std::shared_ptr<EventWatcher>> at(EventWatcher *);
 
+        /**
+         * \brief Launch the event loop
+         */
+        void launch_loop()
+        {
+            loop_();
+        }
+
     private:
         /**
          * \brief Map used to store EventWatchers

@@ -9,6 +9,10 @@ namespace http
             sys::socket(domain, type, protocol)) }
     {}
 
+    DefaultSocket::DefaultSocket(const misc::shared_fd &sfd)
+        : Socket(sfd)
+    {}
+
     ssize_t DefaultSocket::recv(void *, size_t)
     {
         /* FIXME */
@@ -47,10 +51,11 @@ namespace http
         /* FIXME */
     }
 
-    shared_socket DefaultSocket::accept(sockaddr *, socklen_t *)
+    shared_socket DefaultSocket::accept(sockaddr *addr, socklen_t *len)
     {
-        /* FIXME*/
-        return nullptr;
+        auto cfd = std::make_shared<misc::FileDescriptor>(
+            sys::accept(fd_->fd_, addr, len));
+        return std::make_shared<DefaultSocket>(cfd);
     }
 
     void DefaultSocket::connect(const sockaddr *, socklen_t)

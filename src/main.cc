@@ -65,11 +65,13 @@ int main(int argc, char **argv)
         auto socket =
             std::make_shared<http::DefaultSocket>(prepare_socket(vhost_config));
 
-        auto watcher =
-            http::event_register
-                .register_event<http::ListenerEW, http::shared_socket>(socket);
+        http::event_register
+            .register_event<http::ListenerEW, http::shared_socket>(socket);
     }
 
     misc::announce_spider_readiness(argv[0]);
+
+    http::event_register.launch_loop();
+
     return 0;
 }

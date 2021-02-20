@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <map>
 #include <stdexcept>
 #include <stdint.h>
 #include <utility>
@@ -12,6 +13,19 @@
 namespace http
 {
     constexpr auto http_crlf = "\r\n";
+
+    enum class METHOD
+    {
+        GET,
+        POST,
+        HEAD,
+    };
+
+    static std::map<std::string, METHOD> str_method = {
+        { "GET", METHOD::GET },
+        { "POST", METHOD::POST },
+        { "HEAD", METHOD::HEAD }
+    };
 
     enum STATUS_CODE : uint16_t
     {

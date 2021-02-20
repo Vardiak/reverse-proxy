@@ -101,6 +101,8 @@ namespace http
          * \brief Libev's event loop.
          */
         struct ev_loop *loop;
+
+        bool run;
     };
 
 } // namespace http
