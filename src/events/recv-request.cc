@@ -3,6 +3,7 @@
 #include <optional>
 #include <vector>
 
+#include "error/request-error.hh"
 #include "listener.hh"
 #include "register.hh"
 #include "request/request.hh"
@@ -20,11 +21,19 @@ namespace http
         char buffer[512];
         ssize_t read = sock_->recv(buffer, sizeof(buffer));
 
-        connection_->store.append(buffer, read);
+        connection_->raw.append(buffer, read);
 
-        while (auto request = Request::parse(connection_))
+        try
         {
-            // send request to dispatcher
+            while (auto request = Request::parse(connection_))
+            {
+                // send request to dispatcher
+                // close connection if not keep alive
+            }
+        }
+        catch (const RequestError &e)
+        {
+            // Send response & close connection
         }
     }
 

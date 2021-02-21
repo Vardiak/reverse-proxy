@@ -13,6 +13,8 @@
 
 namespace http
 {
+    class Connection;
+
     /**
      * \struct Request
      * \brief Value object representing a request.
@@ -33,10 +35,9 @@ namespace http
         static std::optional<std::shared_ptr<Request>>
             parse(std::shared_ptr<Connection>);
 
-        static std::optional<std::shared_ptr<Request>>
-        parse_request_line(std::string &line);
+        static std::shared_ptr<Request> parse_request_line(std::string &line);
 
-        static bool parse_request_header(std::string &line,
+        static void parse_request_header(std::string &line,
                                          std::shared_ptr<Request> req);
 
         METHOD method;

@@ -8,11 +8,14 @@
 #include <memory>
 #include <string>
 
+#include "request/request.hh"
 #include "request/types.hh"
 #include "socket/socket.hh"
 
 namespace http
 {
+    class Request;
+
     /**
      * \struct Connection
      * \brief Value object representing a connection.
@@ -33,6 +36,8 @@ namespace http
         ** connection.
         */
 
-        std::string store;
+        std::optional<std::shared_ptr<Request>> req;
+        std::string raw;
+        size_t last = 0;
     };
 } // namespace http
