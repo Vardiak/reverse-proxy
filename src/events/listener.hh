@@ -20,7 +20,8 @@ namespace http
         /**
          * \brief Create a ListenerEW from a listener socket.
          */
-        explicit ListenerEW(shared_socket socket);
+        explicit ListenerEW(shared_socket socket, std::string ip,
+                            uint16_t port);
 
         /**
          * \brief Start accepting connections on listener socket.
@@ -32,6 +33,12 @@ namespace http
          * \brief Listener socket.
          */
         shared_socket sock_;
+
+        /**
+         * \brief IP on which the socket is listening.
+         */
+        std::string ip_;
+
         /**
          * \brief Port on which the socket is listening.
          */

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <set>
 
 #include "config/config.hh"
 #include "error/not-implemented.hh"
@@ -8,6 +9,8 @@
 #include "misc/addrinfo/addrinfo.hh"
 #include "misc/readiness/readiness.hh"
 #include "socket/default-socket.hh"
+#include "vhost/dispatcher.hh"
+#include "vhost/vhost-factory.hh"
 
 http::DefaultSocket prepare_socket(http::VHostConfig config);
 http::DefaultSocket create_and_bind(const misc::AddrInfo &addrinfos);
@@ -58,15 +61,33 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    auto config = http::parse_configuration(argv[1]);
+    auto server_config = http::parse_configuration(argv[1]);
 
-    for (auto vhost_config : config.vhosts)
+    std::set<std::string> listened;
+
+    for (auto vhost_config : server_config.vhosts)
     {
-        auto socket =
-            std::make_shared<http::DefaultSocket>(prepare_socket(vhost_config));
+        std::string key =
+            vhost_config.ip + "+" + std::to_string(vhost_config.port);
+        if (listened.count(key) == 0)
+        {
+            auto socket = std::make_shared<http::DefaultSocket>(
+                prepare_socket(vhost_config));
 
-        http::event_register
-            .register_event<http::ListenerEW, http::shared_socket>(socket);
+            std::string ip = vhost_config.ip;
+            uint16_t port = vhost_config.port;
+
+            http::event_register
+                .register_event<http::ListenerEW, http::shared_socket,
+                                std::string, std::uint16_t>(
+                    socket, std::move(ip), std::move(port));
+
+            listened.insert(key);
+        }
+
+        auto vhost = http::VHostFactory::Create(vhost_config);
+
+        dispatcher.add_vhost(vhost);
     }
 
     misc::announce_spider_readiness(argv[0]);

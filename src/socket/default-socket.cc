@@ -13,16 +13,14 @@ namespace http
         : Socket(sfd)
     {}
 
-    ssize_t DefaultSocket::recv(void *, size_t)
+    ssize_t DefaultSocket::recv(void *buffer, size_t size)
     {
-        /* FIXME */
-        return -1;
+        return sys::recv(fd_->fd_, buffer, size, 0);
     }
 
-    ssize_t DefaultSocket::send(const void *, size_t)
+    ssize_t DefaultSocket::send(const void *buffer, size_t size)
     {
-        /* FIXME */
-        return -1;
+        return sys::send(fd_->fd_, buffer, size, 0);
     }
 
     ssize_t DefaultSocket::sendfile(misc::shared_fd &, off_t &, size_t)

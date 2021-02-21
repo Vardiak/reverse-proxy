@@ -1,5 +1,7 @@
 #include "events/event-loop.hh"
 
+#include <iostream>
+
 namespace http
 {
     EventLoop::EventLoop()

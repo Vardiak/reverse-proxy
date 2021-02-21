@@ -39,5 +39,8 @@ namespace http
         std::optional<std::shared_ptr<Request>> req;
         std::string raw;
         size_t last = 0;
+
+        std::string ip_;
+        uint16_t port_;
     };
 } // namespace http

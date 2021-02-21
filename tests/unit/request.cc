@@ -120,6 +120,42 @@ Test(request_parse, full)
 
     conn->raw += "\r\n";
 
-    cr_assert(Request::parse(conn) != std::nullopt);
+    auto r = Request::parse(conn);
+
     cr_assert(conn->req == std::nullopt);
+    cr_assert(r != std::nullopt);
+
+    auto req = r.value();
+    cr_assert(req->headers["User-Agent"].compare("Mozilla/4.0") == 0);
+    cr_assert(req->headers["Host"].compare("www.tutorialspoint.com") == 0);
+    cr_assert(req->method == METHOD::GET);
+    cr_assert(req->uri.compare("/hello.htm") == 0);
+    cr_assert(req->http_version.compare("1.1") == 0);
+}
+
+Test(request_parse_double, full)
+{
+    auto conn = std::make_shared<Connection>();
+
+    cr_assert(Request::parse(conn) == std::nullopt);
+    cr_assert(conn->req == std::nullopt);
+
+    conn->raw += "GET / HTTP/1.1\r\nHost: localhost\r\n\r\nGET / "
+                 "HTTP/1.1\r\nHost: example.com\r\n\r\n";
+    auto r1 = Request::parse(conn);
+    cr_assert(conn->req == std::nullopt);
+    cr_assert(r1 != std::nullopt);
+    auto req1 = r1.value();
+    cr_assert(req1->headers["Host"].compare("localhost") == 0);
+    cr_assert(req1->method == METHOD::GET);
+    cr_assert(req1->http_version.compare("1.1") == 0);
+
+    auto r2 = Request::parse(conn);
+    cr_assert(conn->req == std::nullopt);
+    cr_assert(r2 != std::nullopt);
+
+    auto req2 = r2.value();
+    cr_assert(req2->headers["Host"].compare("example.com") == 0);
+    cr_assert(req2->method == METHOD::GET);
+    cr_assert(req2->http_version.compare("1.1") == 0);
 }

@@ -29,7 +29,7 @@ namespace http
         ~VHostConfig() = default;
 
         std::string ip;
-        int port;
+        uint16_t port;
         std::string server_name;
         std::string root;
         std::string default_file;

@@ -7,9 +7,11 @@
 
 namespace http
 {
-    ListenerEW::ListenerEW(shared_socket socket)
+    ListenerEW::ListenerEW(shared_socket socket, std::string ip, uint16_t port)
         : EventWatcher(socket->fd_get()->fd_, EV_READ)
         , sock_(socket)
+        , ip_(ip)
+        , port_(port)
     {}
 
     void ListenerEW::operator()()

@@ -40,6 +40,7 @@ namespace http
                 }
 
                 req.reset();
+                last = next + 2;
                 return r;
             }
 

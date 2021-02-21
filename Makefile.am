@@ -82,6 +82,7 @@ SOURCES = \
           src/socket/socket.hh \
           src/socket/ssl-socket.hh \
           src/vhost/connection.hh \
+          src/vhost/dispatcher.cc \
           src/vhost/dispatcher.hh \
           src/vhost/vhost-factory.hh \
           src/vhost/vhost-factory.cc \
