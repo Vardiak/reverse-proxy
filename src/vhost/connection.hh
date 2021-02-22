@@ -25,7 +25,9 @@ namespace http
      */
     struct Connection
     {
-        Connection() = default;
+        Connection(shared_socket sock)
+            : sock_(sock)
+        {}
         Connection(const Connection &con) = default;
         Connection &operator=(const Connection &) = default;
         Connection(Connection &&) = default;
@@ -40,7 +42,10 @@ namespace http
         std::string raw;
         size_t last = 0;
 
+        shared_socket sock_;
         std::string ip_;
         uint16_t port_;
     };
+
+    using shared_conn = std::shared_ptr<Connection>;
 } // namespace http

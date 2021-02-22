@@ -21,7 +21,7 @@ namespace http
         /**
          * \brief Create a RecvRequestEW from the shared_socket.
          */
-        explicit RecvRequestEW(shared_socket socket);
+        explicit RecvRequestEW(shared_socket sock, shared_conn conn);
 
         /**
          * \brief Receive me
@@ -33,6 +33,6 @@ namespace http
          * \brief Client socket.
          */
         shared_socket sock_;
-        std::shared_ptr<Connection> connection_;
+        shared_conn conn_;
     };
 } // namespace http

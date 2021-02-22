@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 
         auto vhost = http::VHostFactory::Create(vhost_config);
 
-        dispatcher.add_vhost(vhost);
+        http::dispatcher.add_vhost(vhost);
     }
 
     misc::announce_spider_readiness(argv[0]);

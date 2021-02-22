@@ -22,7 +22,10 @@ namespace http
         auto client = sock_->accept(&addr, &addrlen);
         std::cout << "Client accepted!\n";
 
-        event_register.register_event<RecvRequestEW, shared_socket>(
-            std::move(client));
+        auto conn = std::make_shared<Connection>(client);
+
+        event_register
+            .register_event<RecvRequestEW, shared_socket, shared_conn>(
+                std::move(client), std::move(conn));
     }
 } // namespace http

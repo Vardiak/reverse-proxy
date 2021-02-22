@@ -12,10 +12,10 @@
 
 namespace http
 {
-    RecvRequestEW::RecvRequestEW(shared_socket socket)
-        : EventWatcher(socket->fd_get()->fd_, EV_READ)
-        , sock_(socket)
-        , connection_(std::make_shared<Connection>())
+    RecvRequestEW::RecvRequestEW(shared_socket sock, shared_conn conn)
+        : EventWatcher(sock->fd_get()->fd_, EV_READ)
+        , sock_(sock)
+        , conn_(conn)
     {}
 
     void RecvRequestEW::operator()()
@@ -31,13 +31,13 @@ namespace http
 
         std::cout << "Received buffer of size " << read << std::endl;
 
-        connection_->raw.append(buffer, read);
+        conn_->raw.append(buffer, read);
 
         std::cout << "Received input\n";
 
         try
         {
-            while (auto request = Request::parse(connection_))
+            while (auto request = Request::parse(conn_))
             {
                 std::cout << "Complete request\n";
 

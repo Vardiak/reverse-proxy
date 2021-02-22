@@ -7,6 +7,8 @@
 
 namespace http
 {
+    Dispatcher dispatcher;
+
     void Dispatcher::add_vhost(shared_vhost vhost)
     {
         std::string key = vhost->conf_get().server_name + ':'
@@ -26,6 +28,6 @@ namespace http
         if (vhosts_.count(key) == 0)
             throw RequestError(NOT_FOUND);
 
-        vhosts_[key].respond(r, conn);
+        vhosts_[key]->respond(r, conn);
     }
 } // namespace http
