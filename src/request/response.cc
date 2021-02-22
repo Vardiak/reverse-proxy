@@ -2,16 +2,52 @@
 
 #include <istream>
 #include <sstream>
+#include <string>
+
+#include "types.hh"
 
 namespace http
 {
-    Response::Response(const STATUS_CODE &)
+    Response::Response(const STATUS_CODE &s)
+        : status(s)
+        , is_file(false)
+        , body(std::string(statusCode(status).second) + "\n")
     {
-        /* FIXME */
+        headers["Connection"] = "close";
+        headers["Content-Length"] = std::to_string(body.length());
+
+        char buf[1000];
+        time_t now = time(0);
+        struct tm tm = *gmtime(&now);
+        strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+        headers["Date"] = buf;
     }
 
-    Response::Response(const Request &, const STATUS_CODE &)
+    Response::Response(const Request &, const STATUS_CODE &s)
+        : status(s)
+        , is_file(true)
+    {}
+
+    std::string Response::to_string()
     {
-        /* FIXME */
+        std::string raw;
+
+        raw += "HTTP/1.1 ";
+        raw += std::to_string(status);
+        raw += " ";
+        raw += statusCode(status).second;
+        raw += http_crlf;
+
+        for (auto const &[key, value] : headers)
+            raw += key + ": " + value + "\r\n";
+
+        raw += "\r\n";
+
+        if (!is_file)
+        {
+            raw += body;
+        }
+
+        return raw;
     }
 } // namespace http

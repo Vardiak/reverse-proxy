@@ -14,6 +14,11 @@ namespace http
         {}
         virtual ~RequestError() = default;
 
+        virtual const char *what() const noexcept
+        {
+            return statusCode(status).second;
+        }
+
         STATUS_CODE status;
     };
 } // namespace http

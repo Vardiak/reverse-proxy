@@ -55,9 +55,15 @@ http::DefaultSocket prepare_socket(http::VHostConfig config)
 
 int main(int argc, char **argv)
 {
-    if (argc < 2)
+    if (argc == 3 && strcmp(argv[1], "-t") == 0)
     {
-        std::cerr << "Usage: ./spider [path to server config]\n";
+        http::parse_configuration(argv[2]);
+        return 0;
+    }
+
+    if (argc < 2 || (argc == 2 && argv[1][0] == '-'))
+    {
+        std::cerr << "Usage: ./spider [-t] config.json\n";
         return 1;
     }
 

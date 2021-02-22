@@ -5,6 +5,10 @@
 
 #pragma once
 
+#include <filesystem>
+#include <map>
+#include <variant>
+
 #include "request/request.hh"
 #include "request/types.hh"
 
@@ -20,11 +24,21 @@ namespace http
         Response(const Request &, const STATUS_CODE & = STATUS_CODE::OK);
 
         Response() = default;
-        Response(const Response &) = default;
+        Response(const Response &s) = default;
         Response &operator=(const Response &) = default;
         Response(Response &&) = default;
         Response &operator=(Response &&) = default;
         ~Response() = default;
-        // FIXME: Add members to store the information relative to a response.
+
+        std::string to_string();
+
+        STATUS_CODE status;
+
+        std::map<std::string, std::string> headers;
+
+        bool is_file;
+        std::string body;
     };
+
+    using shared_res = std::shared_ptr<Response>;
 } // namespace http

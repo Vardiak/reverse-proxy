@@ -1,27 +1,28 @@
 /**
- * \file events/recv-request.hh
- * \brief RecvRequestEW declaration.
+ * \file events/send-response.hh
+ * \brief SendResponseEW declaration.
  */
 
 #pragma once
 
 #include "events/events.hh"
+#include "request/response.hh"
 #include "socket/default-socket.hh"
 #include "socket/socket.hh"
 
 namespace http
 {
     /**
-     * \class RecvRequestEW
+     * \class SendResponseEW
      * \brief Workflow for receiving socket.
      */
-    class RecvRequestEW : public EventWatcher
+    class SendResponseEW : public EventWatcher
     {
     public:
         /**
-         * \brief Create a RecvRequestEW from the shared_socket.
+         * \brief Create a SendResponseEW from the shared_socket.
          */
-        explicit RecvRequestEW(shared_socket sock, shared_conn conn);
+        explicit SendResponseEW(shared_socket sock, shared_res response);
 
         /**
          * \brief Receive me
@@ -33,6 +34,11 @@ namespace http
          * \brief Client socket.
          */
         shared_socket sock_;
-        shared_conn conn_;
+        shared_res res_;
+
+        std::string raw_;
+
+        size_t cursor = 0;
+        bool sending_file = false;
     };
 } // namespace http

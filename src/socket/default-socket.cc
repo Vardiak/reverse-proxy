@@ -25,8 +25,8 @@ namespace http
 
     ssize_t DefaultSocket::sendfile(misc::shared_fd &, off_t &, size_t)
     {
-        /* FIXME */
         return -1;
+        // return sys::sendfile(fd_->fd_, s, offset, len);
     }
 
     void DefaultSocket::bind(const sockaddr *addr, socklen_t addrlen)

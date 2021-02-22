@@ -22,7 +22,7 @@ namespace http
         auto client = sock_->accept(&addr, &addrlen);
         std::cout << "Client accepted!\n";
 
-        auto conn = std::make_shared<Connection>(client);
+        auto conn = std::make_shared<Connection>(client, ip_, port_);
 
         event_register
             .register_event<RecvRequestEW, shared_socket, shared_conn>(

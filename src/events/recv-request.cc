@@ -9,6 +9,8 @@
 #include "misc/unistd.hh"
 #include "register.hh"
 #include "request/request.hh"
+#include "send-response.hh"
+#include "vhost/dispatcher.hh"
 
 namespace http
 {
@@ -41,13 +43,27 @@ namespace http
             {
                 std::cout << "Complete request\n";
 
-                // send request to dispatcher
-                // close connection if not keep alive
+                Request r = *(request.value().get());
+
+                dispatcher.dispatch(r, conn_);
+
+                // TODO: handle multiple requests
+                event_register.unregister_ew(this);
             }
         }
         catch (const RequestError &e)
         {
+            std::cout << "Got error : " << e.what() << std::endl;
             // Send response & close connection
+
+            auto sock = sock_;
+            auto res = std::make_shared<Response>(e.status);
+
+            event_register
+                .register_event<SendResponseEW, shared_socket, shared_res>(
+                    std::move(sock), std::move(res));
+
+            event_register.unregister_ew(this);
         }
     }
 

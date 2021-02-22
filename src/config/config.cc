@@ -38,6 +38,7 @@ namespace http
                 throw http::InitializationError("invalid default file");
 
             VHostConfig vhost;
+            vhost.server_name = vhost_parsed["server_name"];
             vhost.ip = vhost_parsed["ip"];
             vhost.port = vhost_parsed["port"];
             vhost.root = vhost_parsed["root"];

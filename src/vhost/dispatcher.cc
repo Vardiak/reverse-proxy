@@ -1,5 +1,6 @@
 #include "dispatcher.hh"
 
+#include <iostream>
 #include <string>
 
 #include "error/request-error.hh"

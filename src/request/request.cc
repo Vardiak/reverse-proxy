@@ -71,6 +71,8 @@ namespace http
             throw RequestError(BAD_REQUEST);
 
         std::string uri = line.substr(i + 1, j - i - 1);
+        if (uri[0] != '/')
+            throw RequestError(BAD_REQUEST);
         // 414 uri too long ?
 
         std::string http_version = line.substr(j + 1);
