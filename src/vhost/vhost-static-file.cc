@@ -4,6 +4,7 @@
 #include <iostream>
 #include <time.h>
 
+#include "error/request-error.hh"
 #include "events/register.hh"
 #include "events/send-response.hh"
 
@@ -16,32 +17,35 @@ namespace http
     void VHostStaticFile::respond(Request &req,
                                   std::shared_ptr<Connection> conn)
     {
-        // Check directory, 404 etc.
+        std::string path = conf_.root + req.uri;
+
+        if (!std::filesystem::exists(path))
+            throw RequestError(NOT_FOUND);
+
+        if (std::filesystem::is_directory(path))
+        {
+            if (path.back() != '/')
+                path += '/';
+            path += conf_.default_file;
+        }
+        else if (!std::filesystem::is_regular_file(path))
+            throw RequestError(FORBIDDEN);
 
         auto res = std::make_shared<Response>(req, OK);
-        res->body = conf_.root + req.uri;
+
+        res->body = path;
+
+        res->content_length =
+            res->is_file ? std::filesystem::file_size(path) : 0;
 
         res->headers["Connection"] = "close";
 
-        char buf[1000];
-        time_t now = time(0);
-        struct tm tm = *gmtime(&now);
-        strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
-        res->headers["Date"] = buf;
-
-        res->headers["Content-Length"] = std::to_string(
-            res->is_file ? std::filesystem::file_size(res->body) : 0);
+        res->headers["Content-Length"] = std::to_string(res->content_length);
 
         shared_socket sock = conn->sock_;
-
-        std::cout << "Before sending response\n";
 
         event_register
             .register_event<SendResponseEW, shared_socket, shared_res>(
                 std::move(sock), std::move(res));
-
-        std::cout << "After sending response\n";
-
-        // Fri, 07 Feb 2020 21:51:28 GMT
     }
 } // namespace http

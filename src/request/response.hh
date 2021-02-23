@@ -31,6 +31,7 @@ namespace http
         ~Response() = default;
 
         std::string to_string();
+        void set_date();
 
         STATUS_CODE status;
 
@@ -38,6 +39,7 @@ namespace http
 
         bool is_file;
         std::string body;
+        size_t content_length;
     };
 
     using shared_res = std::shared_ptr<Response>;

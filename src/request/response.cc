@@ -12,21 +12,20 @@ namespace http
         : status(s)
         , is_file(false)
         , body(std::string(statusCode(status).second) + "\n")
+        , content_length(body.length())
     {
         headers["Connection"] = "close";
-        headers["Content-Length"] = std::to_string(body.length());
+        headers["Content-Length"] = std::to_string(content_length);
 
-        char buf[1000];
-        time_t now = time(0);
-        struct tm tm = *gmtime(&now);
-        strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
-        headers["Date"] = buf;
+        set_date();
     }
 
     Response::Response(const Request &, const STATUS_CODE &s)
         : status(s)
         , is_file(true)
-    {}
+    {
+        set_date();
+    }
 
     std::string Response::to_string()
     {
@@ -49,5 +48,14 @@ namespace http
         }
 
         return raw;
+    }
+
+    void Response::set_date()
+    {
+        char buf[1000];
+        time_t now = time(0);
+        struct tm tm = *gmtime(&now);
+        strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", &tm);
+        headers["Date"] = buf;
     }
 } // namespace http

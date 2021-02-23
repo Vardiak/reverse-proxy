@@ -23,10 +23,10 @@ namespace http
         return sys::send(fd_->fd_, buffer, size, 0);
     }
 
-    ssize_t DefaultSocket::sendfile(misc::shared_fd &, off_t &, size_t)
+    ssize_t DefaultSocket::sendfile(misc::shared_fd &s, off_t &offset,
+                                    size_t len)
     {
-        return -1;
-        // return sys::sendfile(fd_->fd_, s, offset, len);
+        return sys::sendfile(fd_->fd_, s->fd_, &offset, len);
     }
 
     void DefaultSocket::bind(const sockaddr *addr, socklen_t addrlen)
