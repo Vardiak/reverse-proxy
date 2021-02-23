@@ -2,6 +2,7 @@
 #include <set>
 
 #include "config/config.hh"
+#include "error/init-error.hh"
 #include "error/not-implemented.hh"
 #include "events/event-loop.hh"
 #include "events/listener.hh"
@@ -55,10 +56,12 @@ http::DefaultSocket prepare_socket(http::VHostConfig config)
 
 int main(int argc, char **argv)
 {
+    int i = 1;
+    bool dry = false;
     if (argc == 3 && strcmp(argv[1], "-t") == 0)
     {
-        http::parse_configuration(argv[2]);
-        return 0;
+        i++;
+        dry = true;
     }
 
     if (argc < 2 || (argc == 2 && argv[1][0] == '-'))
@@ -67,7 +70,19 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    auto server_config = http::parse_configuration(argv[1]);
+    http::ServerConfig server_config;
+    try
+    {
+        server_config = http::parse_configuration(argv[i]);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    }
+
+    if (dry)
+        return 0;
 
     std::set<std::string> listened;
 
