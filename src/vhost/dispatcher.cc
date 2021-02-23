@@ -23,8 +23,12 @@ namespace http
         if (r.headers.count("Host") == 0)
             throw RequestError(BAD_REQUEST);
 
-        std::string key = r.headers["Host"] + ':' + conn->ip_ + ':'
-            + std::to_string(conn->port_);
+        // Remove port from host
+        std::string domain =
+            r.headers["Host"].substr(0, r.headers["Host"].find(':'));
+
+        std::string key =
+            domain + ':' + conn->ip_ + ':' + std::to_string(conn->port_);
 
         if (vhosts_.count(key) == 0)
             throw RequestError(NOT_FOUND);
