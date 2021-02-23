@@ -14,6 +14,8 @@ namespace http
 {
     class EventWatcher;
 
+    void signal_handler(struct ev_loop *l, ev_signal *, int);
+
     /**
      * \struct EventLoop
      * \brief Value object wrapping libev's ev_loop.

@@ -34,11 +34,19 @@ namespace http
         ev_signal_start(loop, signal);
     }
 
+    void signal_handler(struct ev_loop *l, ev_signal *, int)
+    {
+        std::cout << "Gracefully shutdowned..." << std::endl;
+        ev_break(l, EVBREAK_ALL);
+    }
+
     void EventLoop::operator()() const
     {
-        while (run)
-        {
-            ev_loop(loop, 0);
-        }
+        ev_signal signal_watcher;
+
+        ev_signal_init(&signal_watcher, signal_handler, SIGINT);
+        register_sigint_watcher(&signal_watcher);
+
+        ev_run(loop, 0);
     }
 } // namespace http
