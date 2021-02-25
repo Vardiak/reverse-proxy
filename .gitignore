@@ -1,5 +1,6 @@
 .vsls.json
 build-aux
+.zsh_history
 
 config.h
 libtool
