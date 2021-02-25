@@ -49,24 +49,10 @@ namespace http
         else if (!fs::is_regular_file(path))
             throw RequestError(FORBIDDEN);
 
+		req.target = path.string();
+
         auto res = std::make_shared<Response>(req, OK);
-
-        if (req.method != METHOD::HEAD)
-        {
-            res->body = path.string();
-
-            res->content_length = res->is_file ? fs::file_size(path) : 0;
-            res->headers["Content-Length"] =
-                std::to_string(res->content_length);
-        }
-        else
-        {
-            res->body = "";
-            res->is_file = false;
-        }
-
-        res->headers["Connection"] = "close";
-
+        
         shared_socket sock = conn->sock_;
         event_register
             .register_event<SendResponseEW, shared_socket, shared_res>(

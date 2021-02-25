@@ -20,11 +20,23 @@ namespace http
         set_date();
     }
 
-    Response::Response(const Request &, const STATUS_CODE &s)
+    Response::Response(const Request &req, const STATUS_CODE &s)
         : status(s)
         , is_file(true)
     {
+        headers["Connection"] = "close";
         set_date();
+
+        if (req.method != METHOD::HEAD)
+            body = req.target;
+        else
+        {
+            body = "";
+            is_file = false;
+        }
+
+        content_length = is_file ? std::filesystem::file_size(req.target) : 0;
+        headers["Content-Length"] = std::to_string(content_length);
     }
 
     std::string Response::to_string()
