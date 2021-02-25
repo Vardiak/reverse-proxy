@@ -41,5 +41,7 @@ namespace http
          * Note that these iterators will only be useful starting from SRPS.
          */
         void respond(Request &, std::shared_ptr<Connection>) final;
+
+        std::filesystem::path normalizeURI(std::string uri);
     };
 } // namespace http

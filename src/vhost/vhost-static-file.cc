@@ -8,42 +8,66 @@
 #include "events/register.hh"
 #include "events/send-response.hh"
 
+namespace fs = std::filesystem;
+
 namespace http
 {
     VHostStaticFile::VHostStaticFile(const VHostConfig &config)
         : VHost(config)
     {}
 
+    fs::path VHostStaticFile::normalizeURI(std::string uri)
+    {
+        auto base = fs::canonical(fs::absolute(conf_.root));
+
+        auto res = base;
+        if (!fs::exists(res += uri))
+            throw RequestError(NOT_FOUND);
+
+        res = fs::canonical(res);
+
+        std::cout << "Path: " << res.string() << std::endl;
+
+        if (res.string().find(base.string()) != 0)
+            throw RequestError(FORBIDDEN);
+
+        return res;
+    }
+
     void VHostStaticFile::respond(Request &req,
                                   std::shared_ptr<Connection> conn)
     {
-        std::string path = conf_.root + req.uri;
+        auto path = normalizeURI(req.target);
 
-        if (!std::filesystem::exists(path))
-            throw RequestError(NOT_FOUND);
-
-        if (std::filesystem::is_directory(path))
+        if (fs::is_directory(path))
         {
-            if (path.back() != '/')
-                path += '/';
-            path += conf_.default_file;
+            path /= conf_.default_file;
+
+            if (!fs::exists(path))
+                throw RequestError(NOT_FOUND);
         }
-        else if (!std::filesystem::is_regular_file(path))
+        else if (!fs::is_regular_file(path))
             throw RequestError(FORBIDDEN);
 
         auto res = std::make_shared<Response>(req, OK);
 
-        res->body = path;
+        if (req.method != METHOD::HEAD)
+        {
+            res->body = path.string();
 
-        res->content_length =
-            res->is_file ? std::filesystem::file_size(path) : 0;
+            res->content_length = res->is_file ? fs::file_size(path) : 0;
+            res->headers["Content-Length"] =
+                std::to_string(res->content_length);
+        }
+        else
+        {
+            res->body = "";
+            res->is_file = false;
+        }
 
         res->headers["Connection"] = "close";
 
-        res->headers["Content-Length"] = std::to_string(res->content_length);
-
         shared_socket sock = conn->sock_;
-
         event_register
             .register_event<SendResponseEW, shared_socket, shared_res>(
                 std::move(sock), std::move(res));

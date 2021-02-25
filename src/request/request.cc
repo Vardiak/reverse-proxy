@@ -39,6 +39,9 @@ namespace http
                     // Try to read body (check length) or incomplete request
                 }
 
+                if (r->headers.count("Host") == 0)
+                    throw RequestError(BAD_REQUEST);
+
                 req.reset();
                 last = next + 2;
                 return r;
@@ -70,10 +73,12 @@ namespace http
         if (j == std::string::npos)
             throw RequestError(BAD_REQUEST);
 
-        std::string uri = line.substr(i + 1, j - i - 1);
-        if (uri[0] != '/')
+        std::string target = line.substr(i + 1, j - i - 1);
+        std::smatch sm;
+        const std::regex url("(?:https?://[a-zA-Z0-9.]+(?::[0-9]*)?)?(/.*)");
+        if (!std::regex_search(target, sm, url))
             throw RequestError(BAD_REQUEST);
-        // 414 uri too long ?
+        target = sm[1];
 
         std::string http_version = line.substr(j + 1);
         const std::regex http_regex("HTTP/[0-9].[0-9]");
@@ -83,7 +88,8 @@ namespace http
         if (http_version[5] != '1')
             throw RequestError(HTTP_VERSION_NOT_SUPPORTED);
 
-        return std::make_shared<Request>(method, uri, http_version.substr(5));
+        return std::make_shared<Request>(method, target,
+                                         http_version.substr(5));
     }
 
     void Request::parse_request_header(std::string &line,

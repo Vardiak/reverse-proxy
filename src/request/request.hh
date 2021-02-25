@@ -21,9 +21,9 @@ namespace http
      */
     struct Request
     {
-        Request(METHOD m, std::string u, std::string v)
+        Request(METHOD m, std::string t, std::string v)
             : method(m)
-            , uri(u)
+            , target(t)
             , http_version(v)
         {}
         Request(const Request &) = default;
@@ -41,7 +41,7 @@ namespace http
                                          std::shared_ptr<Request> req);
 
         METHOD method;
-        std::string uri;
+        std::string target;
         std::string http_version;
 
         std::map<std::string, std::string> headers;
