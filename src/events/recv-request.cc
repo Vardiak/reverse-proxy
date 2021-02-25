@@ -22,7 +22,7 @@ namespace http
 
     void RecvRequestEW::operator()()
     {
-        char buffer[512];
+        char buffer[4096];
 
         ssize_t read = sock_->recv(buffer, sizeof(buffer));
         if (read == 0)
@@ -56,9 +56,22 @@ namespace http
             std::cout << "Got error : " << e.what() << std::endl;
             // Send response & close connection
 
-            auto sock = sock_;
             auto res = std::make_shared<Response>(e.status);
 
+            auto sock = sock_;
+            event_register
+                .register_event<SendResponseEW, shared_socket, shared_res>(
+                    std::move(sock), std::move(res));
+
+            event_register.unregister_ew(this);
+        }
+        catch (const std::exception &e)
+        {
+            std::cout << "Internal server error : " << e.what() << std::endl;
+
+            auto res = std::make_shared<Response>(INTERNAL_SERVER_ERROR);
+
+            auto sock = sock_;
             event_register
                 .register_event<SendResponseEW, shared_socket, shared_res>(
                     std::move(sock), std::move(res));
