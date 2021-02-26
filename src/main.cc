@@ -25,8 +25,10 @@ http::DefaultSocket create_and_bind(const misc::AddrInfo &addrinfos)
             http::DefaultSocket socket(a.ai_family, a.ai_socktype,
                                        a.ai_protocol);
 
-            socket.bind(a.ai_addr, a.ai_addrlen);
+            fcntl(socket.fd_get()->fd_, F_SETFL, O_NONBLOCK);
             socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1);
+
+            socket.bind(a.ai_addr, a.ai_addrlen);
 
             return socket;
         }
