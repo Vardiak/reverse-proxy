@@ -53,6 +53,8 @@ namespace http
     {
         auto cfd = std::make_shared<misc::FileDescriptor>(
             sys::accept(fd_->fd_, addr, len));
+
+        fcntl(cfd->fd_, F_SETFL, O_NONBLOCK);
         return std::make_shared<DefaultSocket>(cfd);
     }
 
