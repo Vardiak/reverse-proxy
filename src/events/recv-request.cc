@@ -27,6 +27,7 @@ namespace http
         ssize_t read = sock_->recv(buffer, sizeof(buffer));
         if (read == 0)
         {
+			std::cout << "Unregistering client\n";
             event_register.unregister_ew(this);
             return;
         }

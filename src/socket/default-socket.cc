@@ -15,7 +15,7 @@ namespace http
 
     ssize_t DefaultSocket::recv(void *buffer, size_t size)
     {
-        return sys::recv(fd_->fd_, buffer, size, 0);
+        return sys::recv(fd_->fd_, buffer, size, MSG_DONTWAIT);
     }
 
     ssize_t DefaultSocket::send(const void *buffer, size_t size)
@@ -54,7 +54,10 @@ namespace http
         auto cfd = std::make_shared<misc::FileDescriptor>(
             sys::accept(fd_->fd_, addr, len));
 
-        fcntl(cfd->fd_, F_SETFL, O_NONBLOCK);
+		// Get current socket flags
+		int flags = fcntl(cfd->fd_, F_GETFL);
+
+        fcntl(cfd->fd_, F_SETFL, flags | O_NONBLOCK);
         return std::make_shared<DefaultSocket>(cfd);
     }
 

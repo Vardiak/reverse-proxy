@@ -1,3 +1,4 @@
+#include <iostream>
 #include "events/events.hh"
 
 #include "events/register.hh"
@@ -14,6 +15,8 @@ namespace http
     {
         auto ew = reinterpret_cast<EventWatcher *>(w->data);
         auto shared_ew = event_register.at(ew).value();
+		std::cout << "before\n";
         (*shared_ew)();
+		std::cout << "after\n\n";
     }
 } // namespace http
