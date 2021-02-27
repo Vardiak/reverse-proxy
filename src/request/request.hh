@@ -44,6 +44,8 @@ namespace http
         std::string target;
         std::string http_version;
 
+        std::string body;
+
         std::map<std::string, std::string> headers;
 
         // FIXME: Add members to store the information relative to a request.

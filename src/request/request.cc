@@ -34,9 +34,21 @@ namespace http
                 }
 
                 std::shared_ptr<Request> r = req.value();
-                if (r->headers.find("Content-Length") != r->headers.end())
+                if (r->headers.count("Content-Length") != 0)
                 {
-                    // Try to read body (check length) or incomplete request
+                    try
+                    {
+                        int size = std::stoi(r->headers["Content-Length"]);
+
+                        if (last + size > s.size())
+                            return std::nullopt;
+
+                        r->body = s.substr(last, size);
+                    }
+                    catch (const std::invalid_argument &e)
+                    {
+                        throw RequestError(BAD_REQUEST);
+                    }
                 }
 
                 if (r->headers.count("Host") == 0)

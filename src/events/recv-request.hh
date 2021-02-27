@@ -23,6 +23,8 @@ namespace http
          */
         explicit RecvRequestEW(shared_socket sock, shared_conn conn);
 
+        void send_error_response(STATUS_CODE STATUS);
+
         /**
          * \brief Receive me
          */

@@ -53,6 +53,10 @@ http::DefaultSocket prepare_socket(http::VHostConfig config)
 
     auto socket = create_and_bind(addrinfos);
     socket.listen(1);
+
+    std::cout << "Listening on " << config.ip << ":" << config.port
+              << std::endl;
+
     return socket;
 }
 

@@ -20,6 +20,18 @@ namespace http
         , conn_(conn)
     {}
 
+    void RecvRequestEW::send_error_response(STATUS_CODE status)
+    {
+        auto res = std::make_shared<Response>(status);
+
+        auto sock = sock_;
+        event_register
+            .register_event<SendResponseEW, shared_socket, shared_res>(
+                std::move(sock), std::move(res));
+
+        event_register.unregister_ew(this);
+    }
+
     void RecvRequestEW::operator()()
     {
         char buffer[4096];
@@ -27,8 +39,14 @@ namespace http
         ssize_t read = sock_->recv(buffer, sizeof(buffer));
         if (read == 0)
         {
-			std::cout << "Unregistering client\n";
-            event_register.unregister_ew(this);
+            if (conn_->last != conn_->raw.size())
+            {
+                send_error_response(BAD_REQUEST);
+            }
+            else
+                event_register.unregister_ew(this);
+
+            std::cout << "Unregistering client\n";
             return;
         }
 
@@ -57,27 +75,13 @@ namespace http
             std::cout << "Got error : " << e.what() << std::endl;
             // Send response & close connection
 
-            auto res = std::make_shared<Response>(e.status);
-
-            auto sock = sock_;
-            event_register
-                .register_event<SendResponseEW, shared_socket, shared_res>(
-                    std::move(sock), std::move(res));
-
-            event_register.unregister_ew(this);
+            send_error_response(e.status);
         }
         catch (const std::exception &e)
         {
             std::cout << "Internal server error : " << e.what() << std::endl;
 
-            auto res = std::make_shared<Response>(INTERNAL_SERVER_ERROR);
-
-            auto sock = sock_;
-            event_register
-                .register_event<SendResponseEW, shared_socket, shared_res>(
-                    std::move(sock), std::move(res));
-
-            event_register.unregister_ew(this);
+            send_error_response(INTERNAL_SERVER_ERROR);
         }
     }
 

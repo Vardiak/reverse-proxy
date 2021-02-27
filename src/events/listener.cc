@@ -20,7 +20,6 @@ namespace http
         socklen_t addrlen = sizeof(addr);
 
         auto client = sock_->accept(&addr, &addrlen);
-        std::cout << "Client accepted!\n";
 
         auto conn = std::make_shared<Connection>(client, ip_, port_);
 

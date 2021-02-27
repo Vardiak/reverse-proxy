@@ -11,7 +11,7 @@ namespace http
     Response::Response(const STATUS_CODE &s)
         : status(s)
         , is_file(false)
-        , body(std::string(statusCode(status).second) + "\n")
+        , body("")
         , content_length(body.length())
     {
         headers["Connection"] = "close";

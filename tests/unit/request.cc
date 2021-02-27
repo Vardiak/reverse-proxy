@@ -95,6 +95,17 @@ Test(request_parse, one_shot)
     cr_assert(conn->req == std::nullopt);
 }
 
+Test(request_parse, content_length_too_big)
+{
+    auto conn = std::make_shared<Connection>(nullptr, "0.0.0.0", 8000);
+
+    conn->raw = "GET /hello.htm HTTP/1.1\r\nUser-Agent: Mozilla/4.0\r\nHost: "
+                "www.tutorialspoint.com\r\nContent-Length: 10\r\n\r\n";
+
+    cr_assert(Request::parse(conn) == std::nullopt);
+    cr_assert(conn->req != std::nullopt);
+}
+
 Test(request_parse, full)
 {
     auto conn = std::make_shared<Connection>(nullptr, "0.0.0.0", 8000);

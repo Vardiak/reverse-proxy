@@ -54,15 +54,13 @@ Test(response_parse_double, full)
 
 Test(response_error_parse, full)
 {
-    std::string str = "Not Found\n";
+    std::string str = "Not Found";
 
     auto response = std::make_shared<Response>(NOT_FOUND);
     cr_assert(response->headers["Connection"].compare("close") == 0);
-    cr_assert(response->headers["Content-Length"].compare(
-                  std::to_string(str.length()))
-              == 0);
-    cr_assert(response->content_length == str.length());
+    cr_assert(response->headers["Content-Length"].compare("0") == 0);
+    cr_assert(response->content_length == 0);
     cr_assert(!response->is_file);
     cr_assert(response->status == NOT_FOUND);
-    cr_assert(response->body.compare(str) == 0);
+    cr_assert(response->body.compare("") == 0);
 }
