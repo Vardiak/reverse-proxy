@@ -26,7 +26,7 @@ http::DefaultSocket create_and_bind(const misc::AddrInfo &addrinfos)
                                        a.ai_protocol);
 
             fcntl(socket.fd_get()->fd_, F_SETFL, O_NONBLOCK);
-            socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1);
+            socket.setsockopt(SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, 1);
 
             socket.bind(a.ai_addr, a.ai_addrlen);
 
@@ -52,7 +52,7 @@ http::DefaultSocket prepare_socket(http::VHostConfig config)
         config.ip.c_str(), std::to_string(config.port).c_str(), hint);
 
     auto socket = create_and_bind(addrinfos);
-    socket.listen(1);
+    socket.listen(256);
 
     std::cout << "Listening on " << config.ip << ":" << config.port
               << std::endl;
