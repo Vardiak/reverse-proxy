@@ -93,12 +93,15 @@ namespace http
         target = sm[1];
 
         std::string http_version = line.substr(j + 1);
-        const std::regex http_regex("HTTP/[0-9].[0-9]");
+        const std::regex http_regex("HTTP/[0-9]\\.[0-9]");
         if (!std::regex_match(http_version, http_regex))
             throw RequestError(BAD_REQUEST);
 
-        if (http_version[5] != '1')
+        if (http_version[5] != '1' || (http_version[7] - '0') > 1)
             throw RequestError(HTTP_VERSION_NOT_SUPPORTED);
+
+        if (http_version[7] != '1')
+            throw RequestError(UPGRADE_REQUIRED);
 
         return std::make_shared<Request>(method, target,
                                          http_version.substr(5));
@@ -109,8 +112,11 @@ namespace http
     {
         size_t i = line.find(": ");
 
-        if (i == std::string::npos)
+        if (i == 0 || isspace(line[i - 1]) || i == std::string::npos)
             throw RequestError(BAD_REQUEST);
+
+        const std::regex header("\\S+:[\\s]*\\S+[\\s]*");
+        std::smatch sm;
 
         std::string key = line.substr(0, i);
 

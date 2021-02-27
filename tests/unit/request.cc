@@ -73,6 +73,49 @@ Test(request_line, http_version_unsupported)
     }
 }
 
+Test(request_line, http_minor_version_unsupported)
+{
+    std::string s = "GET /hello.htm HTTP/1.2";
+    try
+    {
+        Request::parse_request_line(s);
+        cr_assert(false);
+    }
+    catch (const RequestError &e)
+    {
+        cr_assert_eq(e.status, HTTP_VERSION_NOT_SUPPORTED);
+    }
+}
+
+Test(request_line, http_version_update_required)
+{
+    std::string s = "GET /hello.htm HTTP/1.0";
+    try
+    {
+        Request::parse_request_line(s);
+        cr_assert(false);
+    }
+    catch (const RequestError &e)
+    {
+        cr_assert_eq(e.status, UPGRADE_REQUIRED);
+    }
+}
+
+Test(request_line, http_0w0)
+{
+    std::string s = "GET /hello.htm HTTP/0w0";
+    try
+    {
+        Request::parse_request_line(s);
+        cr_assert(false);
+    }
+    catch (const RequestError &e)
+    {
+		std::cout << e.what();
+        cr_assert_eq(e.status, BAD_REQUEST);
+    }
+}
+
 Test(request_header, success)
 {
     std::string s = "GET /hello.htm HTTP/1.1";
