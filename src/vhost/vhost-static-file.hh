@@ -42,6 +42,7 @@ namespace http
          */
         void respond(Request &, std::shared_ptr<Connection>) final;
 
-        std::filesystem::path normalizeURI(std::string uri);
+        std::filesystem::path normalize_URI(std::string uri);
+        std::string uri_decode(std::string &url);
     };
 } // namespace http

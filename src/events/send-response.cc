@@ -31,9 +31,14 @@ namespace http
 
             off_t temp = cursor;
 
-            sock_->sendfile(fd, temp, size - cursor);
-
-            std::cout << "Sending file\n";
+            try
+            {
+                sock_->sendfile(fd, temp, size - cursor);
+            }
+            catch (const std::exception &e)
+            {
+                http::event_register.unregister_ew(this);
+            }
 
             cursor = temp;
 
@@ -42,12 +47,16 @@ namespace http
         }
         else
         {
-            size_t sent =
-                sock_->send(raw_.c_str() + cursor, raw_.length() - cursor);
-
-            std::cout << "Sent buffer of size " << sent << std::endl;
-
-            cursor += sent;
+            try
+            {
+                size_t sent =
+                    sock_->send(raw_.c_str() + cursor, raw_.length() - cursor);
+                cursor += sent;
+            }
+            catch (const std::exception &e)
+            {
+                http::event_register.unregister_ew(this);
+            }
 
             if (raw_.length() == cursor)
             {

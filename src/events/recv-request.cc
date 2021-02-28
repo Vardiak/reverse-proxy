@@ -45,23 +45,15 @@ namespace http
             }
             else
                 event_register.unregister_ew(this);
-
-            std::cout << "Unregistering client\n";
             return;
         }
 
-        std::cout << "Received buffer of size " << read << std::endl;
-
         conn_->raw.append(buffer, read);
-
-        std::cout << "Received input\n";
 
         try
         {
             while (auto request = Request::parse(conn_))
             {
-                std::cout << "Complete request\n";
-
                 Request r = *(request.value().get());
 
                 dispatcher.dispatch(r, conn_);
@@ -72,7 +64,6 @@ namespace http
         }
         catch (const RequestError &e)
         {
-            std::cout << "Got error : " << e.what() << std::endl;
             // Send response & close connection
 
             send_error_response(e.status);

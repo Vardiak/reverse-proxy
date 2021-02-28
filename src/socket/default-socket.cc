@@ -54,10 +54,6 @@ namespace http
         auto cfd = std::make_shared<misc::FileDescriptor>(
             sys::accept(fd_->fd_, addr, len));
 
-		// Get current socket flags
-		int flags = fcntl(cfd->fd_, F_GETFL);
-
-        fcntl(cfd->fd_, F_SETFL, flags | O_NONBLOCK);
         return std::make_shared<DefaultSocket>(cfd);
     }
 

@@ -51,7 +51,10 @@ namespace http
                     }
                 }
 
-                if (r->headers.count("Host") == 0)
+                const std::regex host_regex("^[\\w\\.]*(:[0-9]+)?$");
+
+                if (r->headers.count("Host") == 0
+                    || !std::regex_match(r->headers["host"], host_regex))
                     throw RequestError(BAD_REQUEST);
 
                 req.reset();
@@ -110,17 +113,18 @@ namespace http
     void Request::parse_request_header(std::string &line,
                                        std::shared_ptr<Request> req)
     {
-        size_t i = line.find(": ");
+        const std::regex header_regex("(\\S+):[\\s]*(\\S+)[\\s]*");
 
-        if (i == 0 || isspace(line[i - 1]) || i == std::string::npos)
+        std::smatch sm;
+        if (!std::regex_search(line, sm, header_regex))
             throw RequestError(BAD_REQUEST);
 
-        const std::regex header("\\S+:[\\s]*\\S+[\\s]*");
-        std::smatch sm;
+        std::string key = sm[1];
 
-        std::string key = line.substr(0, i);
+        std::string value = sm[2];
 
-        std::string value = line.substr(i + 2);
+        if (req->headers.count(key) > 0)
+            throw RequestError(BAD_REQUEST);
 
         req->headers[key] = value;
     }

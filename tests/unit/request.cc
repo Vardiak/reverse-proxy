@@ -111,7 +111,7 @@ Test(request_line, http_0w0)
     }
     catch (const RequestError &e)
     {
-		std::cout << e.what();
+        std::cout << e.what();
         cr_assert_eq(e.status, BAD_REQUEST);
     }
 }
@@ -125,6 +125,118 @@ Test(request_header, success)
 
     Request::parse_request_header(s2, req);
     cr_assert(req->headers["User-Agent"].compare("Mozilla/4.0") == 0);
+}
+
+Test(request_header, optional_whitespace)
+{
+    std::string s = "GET /hello.htm HTTP/1.1";
+    auto req = Request::parse_request_line(s);
+
+    std::string s2 = "User-Agent: \n\t\tMozilla/4.0      ";
+
+    Request::parse_request_header(s2, req);
+    cr_assert(req->headers["User-Agent"].compare("Mozilla/4.0") == 0);
+}
+
+Test(request_header, bad_whitespace)
+{
+    std::string s = "GET /hello.htm HTTP/1.1";
+    auto req = Request::parse_request_line(s);
+
+    std::string s2 = "User-Agent : Mozilla/4.0";
+
+    try
+    {
+        Request::parse_request_header(s2, req);
+    }
+    catch (const RequestError &e)
+    {
+        cr_assert_eq(e.status, BAD_REQUEST);
+    }
+}
+
+Test(host_header, server_name)
+{
+    std::string s = "GET /hello.htm HTTP/1.1";
+    auto req = Request::parse_request_line(s);
+
+    std::string s2 = "Host: example.com";
+    Request::parse_request_header(s2, req);
+
+    cr_assert(req->headers["Host"].compare("example.com") == 0);
+}
+
+Test(host_header, server_name_port)
+{
+    std::string s = "GET /hello.htm HTTP/1.1";
+    auto req = Request::parse_request_line(s);
+
+    std::string s2 = "Host: example.com:80";
+    Request::parse_request_header(s2, req);
+
+    cr_assert(req->headers["Host"].compare("example.com:80") == 0);
+}
+
+Test(host_header, ip_port)
+{
+    std::string s = "GET /hello.htm HTTP/1.1";
+    auto req = Request::parse_request_line(s);
+
+    std::string s2 = "Host: 0.0.0.0:80";
+    Request::parse_request_header(s2, req);
+
+    cr_assert(req->headers["Host"].compare("0.0.0.0:80") == 0);
+}
+
+Test(host_header_fail, port)
+{
+    std::string s = "GET /hello.htm HTTP/1.1";
+    auto req = Request::parse_request_line(s);
+
+    std::string s2 = "Host: :80";
+
+    try
+    {
+        Request::parse_request_header(s2, req);
+    }
+    catch (const RequestError &e)
+    {
+        cr_assert_eq(e.status, BAD_REQUEST);
+    }
+}
+
+Test(host_header_fail, empty)
+{
+    std::string s = "GET /hello.htm HTTP/1.1";
+    auto req = Request::parse_request_line(s);
+
+    std::string s2 = "Host:";
+
+    try
+    {
+        Request::parse_request_header(s2, req);
+    }
+    catch (const RequestError &e)
+    {
+        cr_assert_eq(e.status, BAD_REQUEST);
+    }
+}
+
+Test(host_header_fail, server_name_ip)
+{
+    std::string s = "GET /hello.htm HTTP/1.1";
+    auto req = Request::parse_request_line(s);
+
+    std::string s2 = "Host: example.com:0.0.0.0";
+
+    try
+    {
+        Request::parse_request_header(s2, req);
+    }
+    catch (const RequestError &e)
+    {
+        cr_assert_eq(e.status, BAD_REQUEST);
+    }
 }
 
 Test(request_parse, one_shot)

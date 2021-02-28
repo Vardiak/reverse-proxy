@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <iostream>
+#include <regex>
 #include <time.h>
 
 #include "error/request-error.hh"
@@ -16,8 +17,40 @@ namespace http
         : VHost(config)
     {}
 
-    fs::path VHostStaticFile::normalizeURI(std::string uri)
+    std::string VHostStaticFile::uri_decode(std::string &uri)
     {
+        std::string res;
+        for (size_t i = 0; i < uri.length(); i++)
+        {
+            if (uri[i] == '%')
+            {
+                char c = std::strtol(uri.substr(i + 1, 2).c_str(), nullptr, 16);
+                res += c;
+                i = i + 2;
+            }
+            else
+                res += uri[i];
+        }
+        return res;
+    }
+
+    fs::path VHostStaticFile::normalize_URI(std::string uri)
+    {
+        const std::regex uri_regex("^([^?#]*)(\\?[^#]*)?(#(.*))?");
+
+        std::smatch sm;
+        if (!std::regex_search(uri, sm, uri_regex))
+            throw RequestError(BAD_REQUEST);
+
+        try
+        {
+            uri = uri_decode(sm[1]);
+        }
+        catch (const std::exception &e)
+        {
+            throw RequestError(BAD_REQUEST);
+        }
+
         auto base = fs::canonical(fs::absolute(conf_.root));
 
         auto res = base;
@@ -25,8 +58,6 @@ namespace http
             throw RequestError(NOT_FOUND);
 
         res = fs::canonical(res);
-
-        std::cout << "Path: " << res.string() << std::endl;
 
         if (res.string().find(base.string()) != 0)
             throw RequestError(FORBIDDEN);
@@ -37,22 +68,22 @@ namespace http
     void VHostStaticFile::respond(Request &req,
                                   std::shared_ptr<Connection> conn)
     {
-        auto path = normalizeURI(req.target);
+        auto path = normalize_URI(req.target);
 
         if (fs::is_directory(path))
         {
             path /= conf_.default_file;
 
-            if (!fs::exists(path))
+            if (!fs::is_regular_file(path))
                 throw RequestError(NOT_FOUND);
         }
         else if (!fs::is_regular_file(path))
             throw RequestError(FORBIDDEN);
 
-		req.target = path.string();
+        req.target = path.string();
 
         auto res = std::make_shared<Response>(req, OK);
-        
+
         shared_socket sock = conn->sock_;
         event_register
             .register_event<SendResponseEW, shared_socket, shared_res>(

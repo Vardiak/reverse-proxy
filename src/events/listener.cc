@@ -4,7 +4,6 @@
 
 #include "recv-request.hh"
 #include "register.hh"
-
 namespace http
 {
     ListenerEW::ListenerEW(shared_socket socket, std::string ip, uint16_t port)
@@ -20,6 +19,10 @@ namespace http
         socklen_t addrlen = sizeof(addr);
 
         auto client = sock_->accept(&addr, &addrlen);
+
+        // Set socket non blocking
+        int flags = fcntl(client->fd_get()->fd_, F_GETFL);
+        fcntl(client->fd_get()->fd_, F_SETFL, flags | O_NONBLOCK);
 
         auto conn = std::make_shared<Connection>(client, ip_, port_);
 
