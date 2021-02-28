@@ -41,10 +41,11 @@ namespace http
         std::smatch sm;
         if (!std::regex_search(uri, sm, uri_regex))
             throw RequestError(BAD_REQUEST);
+        uri = sm[1];
 
         try
         {
-            uri = uri_decode(sm[1]);
+            uri = uri_decode(uri);
         }
         catch (const std::exception &e)
         {
