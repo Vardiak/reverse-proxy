@@ -33,6 +33,11 @@ namespace http
         std::string server_name;
         std::string root;
         std::string default_file;
+        std::string auth_basic;
+        std::string auth_basic_users;
+        std::string ssl_cert;
+        std::string ssl_key;
+        bool default_vhost = false;
     };
 
     /**
