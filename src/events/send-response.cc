@@ -33,10 +33,14 @@ namespace http
 
             try
             {
-                sock_->sendfile(fd, temp, size - cursor);
+                ssize_t r = sock_->sendfile(fd, temp, size - cursor);
+
+                if (r == 0)
+                    http::event_register.unregister_ew(this);
             }
             catch (const std::exception &e)
             {
+                std::cerr << e.what() << std::endl;
                 http::event_register.unregister_ew(this);
             }
 
@@ -51,10 +55,15 @@ namespace http
             {
                 size_t sent =
                     sock_->send(raw_.c_str() + cursor, raw_.length() - cursor);
+
+                if (sent == 0)
+                    http::event_register.unregister_ew(this);
+
                 cursor += sent;
             }
             catch (const std::exception &e)
             {
+                std::cerr << e.what() << std::endl;
                 http::event_register.unregister_ew(this);
             }
 
