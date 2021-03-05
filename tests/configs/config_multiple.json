@@ -1,0 +1,16 @@
+{
+    "vhosts": [
+        {
+            "ip": "127.0.0.1",
+            "port": 8000,
+            "server_name": "v1.localhost",
+            "root": "./tests/static"
+        },
+        {
+            "ip": "127.0.0.1",
+            "port": 8000,
+            "server_name": "v2.localhost",
+            "root": "./tests/static"
+        }
+    ]
+}
