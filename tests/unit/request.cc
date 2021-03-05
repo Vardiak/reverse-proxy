@@ -132,7 +132,7 @@ Test(request_header, optional_whitespace)
     std::string s = "GET /hello.htm HTTP/1.1";
     auto req = Request::parse_request_line(s);
 
-    std::string s2 = "User-Agent: \n\t\tMozilla/4.0      ";
+    std::string s2 = "User-Agent: \t\t    Mozilla/4.0      ";
 
     Request::parse_request_header(s2, req);
     cr_assert(req->headers["User-Agent"].compare("Mozilla/4.0") == 0);
