@@ -39,12 +39,7 @@ namespace http
         ssize_t read = sock_->recv(buffer, sizeof(buffer));
         if (read == 0)
         {
-            if (conn_->last != conn_->raw.size())
-            {
-                send_error_response(BAD_REQUEST);
-            }
-            else
-                event_register.unregister_ew(this);
+            event_register.unregister_ew(this);
             return;
         }
 
