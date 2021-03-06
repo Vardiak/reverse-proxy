@@ -111,7 +111,6 @@ Test(request_line, http_0w0)
     }
     catch (const RequestError &e)
     {
-        std::cout << e.what();
         cr_assert_eq(e.status, BAD_REQUEST);
     }
 }

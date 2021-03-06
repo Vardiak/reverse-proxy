@@ -36,3 +36,86 @@ Test(config, port_not_int)
         cr_assert(strcmp(e.what(), "Initialization error: invalid port") == 0);
     }
 }
+
+Test(config, auth_basic_error)
+{
+    try
+    {
+        http::parse_configuration("tests/configs/config_auth_basic_error.json");
+        cr_assert(false);
+    }
+    catch (const http::InitializationError &e)
+    {
+        cr_assert(strcmp(e.what(),
+                         "Initialization error: auth_basic and "
+                         "auth_basic_users must be defined together")
+                  == 0);
+    }
+}
+
+Test(config, auth_basic_users_error)
+{
+    try
+    {
+        http::parse_configuration(
+            "tests/configs/config_auth_basic_users_error.json");
+        cr_assert(false);
+    }
+    catch (const http::InitializationError &e)
+    {
+        cr_assert(strcmp(e.what(),
+                         "Initialization error: auth_basic and "
+                         "auth_basic_users must be defined together")
+                  == 0);
+    }
+}
+
+Test(config, ssl_key_error)
+{
+    try
+    {
+        http::parse_configuration("tests/configs/config_ssl_key_error.json");
+        cr_assert(false);
+    }
+    catch (const http::InitializationError &e)
+    {
+        cr_assert(strcmp(e.what(),
+                         "Initialization error: ssl_cert and ssl_key must be "
+                         "defined together")
+                  == 0);
+    }
+}
+
+Test(config, ssl_cert_error)
+{
+    try
+    {
+        http::parse_configuration("tests/configs/config_ssl_cert_error.json");
+        cr_assert(false);
+    }
+    catch (const http::InitializationError &e)
+    {
+        cr_assert(strcmp(e.what(),
+                         "Initialization error: ssl_cert and ssl_key must be "
+                         "defined together")
+                  == 0);
+    }
+}
+
+Test(config, multiple_default_vhosts)
+{
+    try
+    {
+        http::parse_configuration(
+            "tests/configs/config_several_default_vhost.json");
+        cr_assert(false);
+    }
+    catch (const http::InitializationError &e)
+    {
+        cr_assert(
+            strcmp(
+                e.what(),
+                "Initialization error: Default vhost must be unique and valid")
+            == 0);
+    }
+}

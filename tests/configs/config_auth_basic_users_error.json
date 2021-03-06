@@ -1,0 +1,15 @@
+{
+    "vhosts": [
+        {
+            "ip": "0.0.0.0",
+            "port": 8000,
+            "server_name": "localhost",
+            "root": "./tests/static",
+			"auth_basic_users": [
+                "srv",
+                "vardiak",
+                "noTban"
+            ]
+        }
+    ]
+}
