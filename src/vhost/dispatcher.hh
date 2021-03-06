@@ -5,6 +5,7 @@
 
 #pragma once
 #include <map>
+#include <optional>
 
 #include "vhost-static-file.hh"
 
@@ -25,6 +26,8 @@ namespace http
 
         void add_vhost(shared_vhost);
         void dispatch(Request &, std::shared_ptr<Connection>);
+        std::optional<shared_vhost> find_vhost(std::string server_name,
+                                               std::string ip, uint16_t port);
 
     private:
         /* FIXME: Add members to store the information relative to the

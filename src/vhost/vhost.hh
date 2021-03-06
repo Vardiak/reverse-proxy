@@ -9,8 +9,11 @@
 
 #include "config/config.hh"
 #include "error/not-implemented.hh"
+#include "events/register.hh"
+#include "misc/addrinfo/addrinfo.hh"
 #include "request/request.hh"
 #include "request/response.hh"
+#include "socket/default-socket.hh"
 #include "vhost/connection.hh"
 
 namespace http
@@ -49,6 +52,11 @@ namespace http
             return conf_;
         }
 
+        shared_socket create_and_bind(const misc::AddrInfo &addrinfos,
+                                      bool ssl);
+        shared_socket prepare_socket(bool ssl);
+        static int sni_callback(SSL *ssl, int *, void *arg);
+
     protected:
         /**
          *  \brief VHost configuration.
@@ -72,6 +80,8 @@ namespace http
         std::unique_ptr<SSL_CTX, decltype(SSL_CTX_free) *> ssl_ctx_{
             nullptr, SSL_CTX_free
         };
+
+        static bool openssl_loaded;
     };
 
     using shared_vhost = std::shared_ptr<VHost>;
