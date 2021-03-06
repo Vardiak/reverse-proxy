@@ -38,8 +38,10 @@ namespace http
             else if (vhost_parsed.contains("default_file")
                      && !vhost_parsed["default_file"].is_string())
                 throw http::InitializationError("invalid default file");
-            else if (vhost_parsed["auth_basic"].is_string()
-                     != vhost_parsed["auth_basic_users"].is_array())
+            else if ((vhost_parsed.contains("auth_basic")
+                      && vhost_parsed["auth_basic"].is_string())
+                     != (vhost_parsed.contains("auth_basic_users")
+                         && vhost_parsed["auth_basic_users"].is_array()))
                 throw http::InitializationError(
                     "auth_basic and auth_basic_users must be defined together");
             else if (vhost_parsed.contains("default_vhost")
@@ -47,8 +49,10 @@ namespace http
                          || !vhost_parsed["default_vhost"].is_string()))
                 throw http::InitializationError(
                     "Default vhost must be unique and valid");
-            else if (vhost_parsed["ssl_cert"].is_string()
-                     != vhost_parsed["ssl_key"].is_string())
+            else if ((vhost_parsed.contains("ssl_cert")
+                      && vhost_parsed["ssl_cert"].is_string())
+                     != (vhost_parsed.contains("ssl_key")
+                         && vhost_parsed["ssl_key"].is_string()))
                 throw http::InitializationError(
                     "ssl_cert and ssl_key must be defined together");
 
@@ -62,21 +66,21 @@ namespace http
             else
                 vhost.default_file = "index.html";
 
-            // if (vhost_parsed.contains("auth_basic"))
-            // {
-            //     vhost.auth_basic = vhost_parsed["auth_basic"];
-            //     vhost.auth_basic_users = vhost_parsed["auth_basic_users"];
-            // }
-            // if (vhost_parsed.contains("ssl_cert"))
-            // {
-            //     vhost.ssl_cert = vhost_parsed["ssl_cert"];
-            //     vhost.ssl_key = vhost_parsed["ssl_key"];
-            // }
-            // if (vhost_parsed.contains("default_vhost"))
-            // {
-            //     vhost.default_vhost = true;
-            //     default_vhost = true;
-            // }
+            if (vhost_parsed.contains("auth_basic"))
+            {
+                vhost.auth_basic = vhost_parsed["auth_basic"];
+                vhost.auth_basic_users = vhost_parsed["auth_basic_users"];
+            }
+            if (vhost_parsed.contains("ssl_cert"))
+            {
+                vhost.ssl_cert = vhost_parsed["ssl_cert"];
+                vhost.ssl_key = vhost_parsed["ssl_key"];
+            }
+            if (vhost_parsed.contains("default_vhost"))
+            {
+                vhost.default_vhost = true;
+                default_vhost = true;
+            }
 
             config.vhosts.push_back(vhost);
         }
