@@ -9,7 +9,27 @@ import subprocess
 import signal
 import time
 
+def recvall(sock):
+    BUFF_SIZE = 4096
+    data = bytearray()
+    while True:
+        packet = sock.recv(BUFF_SIZE)
+        if not packet:
+            break
+        data.extend(packet)
+    return data.decode()
+
 class TestRequests(unittest.TestCase):
+
+    def setUp(self):
+        self.out = subprocess.Popen("cd ../../ && ./spider ./tests/configs/config_basic.json &> /dev/null", shell=True, preexec_fn=os.setsid)
+        time.sleep(0.1)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def tearDown(self):
+        self.socket.close()
+        os.killpg(os.getpgid(self.out.pid), signal.SIGTERM)
+        self.out.communicate()
      
     # def test_status_code(self):
 
@@ -20,31 +40,23 @@ class TestRequests(unittest.TestCase):
     #     serial.write('\x03')
 
     
-    def test_socket_get_response(self):
-        # out = subprocess.Popen("../../spider ../configs/config_subject.json", shell=True, preexec_fn=os.setsid)
+    def test_basic_request(self):
+        self.socket.connect(("localhost", 8000))
+        req = "GET /index.html HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n"
+        self.socket.send(req.encode())
+        response = recvall(self.socket)
+        res = re.match("HTTP\/1\.1 200[\s\S]+\r\n\r\ngood\n", response)
 
-        # time.sleep(1)
+        self.assertIsNotNone(res)
 
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect(("localhost", 8000))
-        req = "GETindex.html HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n"
-        s.send(req.encode())
-        response = s.recv(1024).decode()
-        print(response)
-        url = re.search("(?:https?://[a-zA-Z0-9.]+(?::[0-9]*)?)?(/.*)", response)
-        headers = re.findall("(\\S+):[ \t]*(\\S+)[ \t]*", response)
-        #[ERROR] IO check failed ! Expected to match `HTTP\/1\.1 200[\s\S]+
+    def test_hostname(self):
+        self.socket.connect(("localhost", 8000))
+        req = "GET /index.html HTTP/1.1\r\nHost: localhost\r\n\r\n"
+        self.socket.send(req.encode())
+        response = recvall(self.socket)
+        res = re.match("HTTP\/1\.1 200[\s\S]+\r\n\r\ngood\n", response)
 
-        print(url)
-        print(headers)
-
-        s.close()
-
-
-        # os.killpg(os.getpgid(out.pid), signal.SIGTERM)
-        # out.communicate()
-
-
+        self.assertIsNotNone(res)
 
 
 if __name__ == '__main__':
