@@ -1,5 +1,6 @@
 #include "send-response.hh"
 
+#include <algorithm>
 #include <iostream>
 #include <optional>
 #include <vector>
@@ -33,7 +34,8 @@ namespace http
 
             try
             {
-                ssize_t r = sock_->sendfile(fd, temp, size - cursor);
+                ssize_t r =
+                    sock_->sendfile(fd, temp, std::min(4096UL, size - cursor));
 
                 if (r == 0)
                     http::event_register.unregister_ew(this);

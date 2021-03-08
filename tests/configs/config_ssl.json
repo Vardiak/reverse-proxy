@@ -1,0 +1,12 @@
+{
+    "vhosts": [
+        {
+            "ip": "0.0.0.0",
+            "port": 8000,
+            "server_name": "localhost",
+            "root": "./tests/static",
+			"ssl_cert": "./tests/cert/localhost.pem",
+			"ssl_key": "./tests/cert/localhost-key.pem"
+        }
+    ]
+}
