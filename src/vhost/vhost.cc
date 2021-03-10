@@ -1,10 +1,13 @@
 #include "vhost.hh"
 
 #include <iostream>
+#include <regex>
 
 #include "dispatcher.hh"
 #include "error/init-error.hh"
+#include "error/request-error.hh"
 #include "events/listener.hh"
+#include "events/send-response.hh"
 #include "misc/openssl/ssl.hh"
 #include "socket/ssl-socket.hh"
 
@@ -136,5 +139,65 @@ namespace http
         SSL_set_SSL_CTX(ssl, vhost.value()->ssl_ctx_.get());
 
         return SSL_TLSEXT_ERR_OK;
+    }
+
+    std::string VHost::base64_decode(const std::string &in)
+    {
+        std::string out;
+
+        std::vector<int> T(256, -1);
+        for (int i = 0; i < 64; i++)
+            T["ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+                  [i]] = i;
+
+        int val = 0, valb = -8;
+        for (unsigned char c : in)
+        {
+            if (c == '=')
+                break;
+            if (T[c] == -1)
+                return "";
+            val = (val << 6) + T[c];
+            valb += 6;
+            if (valb >= 0)
+            {
+                out.push_back(char((val >> valb) & 0xFF));
+                valb -= 8;
+            }
+        }
+        return out;
+    }
+
+    bool VHost::check_auth(Request &req, std::shared_ptr<Connection> conn)
+    {
+        if (conf_.auth_basic.empty())
+            return true;
+
+        if (req.headers.count("Authorization") > 0)
+        {
+            std::smatch sm;
+            const std::regex auth_regex("^([\\w]+) ([0-9a-zA-Z\\+/=]+)$");
+            if (std::regex_search(req.headers["Authorization"], sm, auth_regex)
+                && sm[1] == "Basic")
+            {
+                std::string credentials = base64_decode(sm[2]);
+
+                if (!credentials.empty()
+                    && conf_.auth_basic_users.count(credentials) != 0)
+                    return true;
+            }
+        }
+
+        auto res = std::make_shared<Response>(UNAUTHORIZED);
+
+        res->headers["WWW-Authenticate"] =
+            "Basic realm=\"" + conf_.auth_basic + "\"";
+
+        shared_socket sock = conn->sock_;
+        event_register
+            .register_event<SendResponseEW, shared_socket, shared_res>(
+                std::move(sock), std::move(res));
+
+        return false;
     }
 } // namespace http

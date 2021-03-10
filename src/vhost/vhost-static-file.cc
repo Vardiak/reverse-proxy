@@ -69,6 +69,9 @@ namespace http
     void VHostStaticFile::respond(Request &req,
                                   std::shared_ptr<Connection> conn)
     {
+        if (!check_auth(req, conn))
+            return;
+
         auto path = normalize_URI(req.target);
 
         if (fs::is_directory(path))

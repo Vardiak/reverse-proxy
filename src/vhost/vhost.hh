@@ -57,6 +57,9 @@ namespace http
         shared_socket prepare_socket(bool ssl);
         static int sni_callback(SSL *ssl, int *, void *arg);
 
+        bool check_auth(Request &req, std::shared_ptr<Connection> conn);
+        static std::string base64_decode(const std::string &in);
+
     protected:
         /**
          *  \brief VHost configuration.
