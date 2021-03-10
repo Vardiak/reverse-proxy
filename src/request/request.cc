@@ -113,7 +113,7 @@ namespace http
     void Request::parse_request_header(std::string &line,
                                        std::shared_ptr<Request> req)
     {
-        const std::regex header_regex("(\\S+):[ \t]*(\\S+)[ \t]*");
+        const std::regex header_regex("^(\\S+):[ \t]*(.+?)[ \t]*$");
 
         std::smatch sm;
         if (!std::regex_search(line, sm, header_regex))
