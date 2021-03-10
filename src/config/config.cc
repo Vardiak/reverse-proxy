@@ -46,7 +46,7 @@ namespace http
                     "auth_basic and auth_basic_users must be defined together");
             else if (vhost_parsed.contains("default_vhost")
                      && (default_vhost
-                         || !vhost_parsed["default_vhost"].is_string()))
+                         || !vhost_parsed["default_vhost"].is_boolean()))
                 throw http::InitializationError(
                     "Default vhost must be unique and valid");
             else if ((vhost_parsed.contains("ssl_cert")
@@ -69,7 +69,8 @@ namespace http
             if (vhost_parsed.contains("auth_basic"))
             {
                 vhost.auth_basic = vhost_parsed["auth_basic"];
-                vhost.auth_basic_users = vhost_parsed["auth_basic_users"];
+                for (std::string user : vhost_parsed["auth_basic_users"])
+                    vhost.auth_basic_users.insert(user);
             }
             if (vhost_parsed.contains("ssl_cert"))
             {
