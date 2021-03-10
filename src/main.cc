@@ -40,15 +40,15 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    if (dry)
-        return 0;
-
     for (auto vhost_config : server_config.vhosts)
     {
         auto vhost = http::VHostFactory::Create(vhost_config);
 
         http::dispatcher.add_vhost(vhost);
     }
+
+    if (dry)
+        return 0;
 
     misc::announce_spider_readiness(argv[0]);
 
