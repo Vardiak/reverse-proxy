@@ -53,6 +53,41 @@ Test(config, auth_basic_error)
     }
 }
 
+Test(config, auth_basic_not_string)
+{
+    try
+    {
+        http::parse_configuration("tests/configs/config_auth_not_string.json");
+        cr_assert(false);
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << e.what() << std::endl;
+        cr_assert(strcmp(e.what(),
+                         "[json.exception.type_error.302] type must be string, "
+                         "but is number")
+                  == 0);
+    }
+}
+
+Test(config, auth_basic_column_missing)
+{
+    try
+    {
+        http::parse_configuration(
+            "tests/configs/config_auth_column_missing.json");
+        cr_assert(false);
+    }
+    catch (const http::InitializationError &e)
+    {
+        std::cout << e.what() << std::endl;
+        cr_assert(strcmp(e.what(),
+                         "Initialization error: Basic users' syntax must be "
+                         "username:password")
+                  == 0);
+    }
+}
+
 Test(config, auth_basic_users_error)
 {
     try

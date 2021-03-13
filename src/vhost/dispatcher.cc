@@ -14,11 +14,16 @@ namespace http
 
     void Dispatcher::add_vhost(shared_vhost vhost)
     {
+        if (vhost->conf_get().default_vhost)
+            default_ = vhost;
+
         std::string key = vhost->conf_get().server_name + '@'
             + vhost->conf_get().ip + '@'
             + std::to_string(vhost->conf_get().port);
+        std::string widlcard_key = vhost->conf_get().server_name + '@'
+            + "0.0.0.0@" + std::to_string(vhost->conf_get().port);
 
-        if (vhosts_.count(key) > 0)
+        if (vhosts_.count(key) > 0 || vhosts_.count(widlcard_key) > 0)
             throw InitializationError("Multiple vhosts with same signature.");
 
         vhosts_[key] = vhost;
@@ -58,11 +63,11 @@ namespace http
         {
             const std::regex ip_regex("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$");
             if (!std::regex_match(server_name, ip_regex))
-                return std::nullopt;
+                return default_;
 
             key = "0.0.0.0@0.0.0.0@" + std::to_string(port);
             if (vhosts_.count(key) == 0)
-                return std::nullopt;
+                return default_;
         }
         return vhosts_[key];
     }

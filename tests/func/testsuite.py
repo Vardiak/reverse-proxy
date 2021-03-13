@@ -1,8 +1,6 @@
 import os
-import sys
 import re
-# import requests
-# import serial
+import requests
 import unittest
 import socket
 import subprocess
@@ -30,15 +28,6 @@ class TestRequests(unittest.TestCase):
         self.socket.close()
         os.killpg(os.getpgid(self.out.pid), signal.SIGTERM)
         self.out.communicate()
-     
-    # def test_status_code(self):
-
-    #     os.system('./spider tests/configs/config_subject.json')
-    #     response = requests.get('http://127.0.0.1:8000/index.html')
-    #     status_code = response.status_code
-    #     self.assertEqual(status_code, 200)
-    #     serial.write('\x03')
-
     
     def test_basic_request(self):
         self.socket.connect(("localhost", 8000))
@@ -46,7 +35,6 @@ class TestRequests(unittest.TestCase):
         self.socket.send(req.encode())
         response = recvall(self.socket)
         res = re.match("HTTP\/1\.1 200[\s\S]+\r\n\r\ngood\n", response)
-
         self.assertIsNotNone(res)
 
     def test_hostname(self):
@@ -57,6 +45,14 @@ class TestRequests(unittest.TestCase):
         res = re.match("HTTP\/1\.1 200[\s\S]+\r\n\r\ngood\n", response)
 
         self.assertIsNotNone(res)
+
+    def test_requests(self):
+        a = requests.get('http://localhost:8000')
+        self.assertEqual(a.text, 'good\n')
+
+    def test_default_vhost(self):
+        a = requests.get('http://localhost:8000', headers={'Host': 'example.com'})
+        self.assertEqual(a.text, 'good\n')
 
 
 if __name__ == '__main__':

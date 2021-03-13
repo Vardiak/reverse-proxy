@@ -33,18 +33,18 @@ int main(int argc, char **argv)
     try
     {
         server_config = http::parse_configuration(argv[i]);
+
+        for (auto vhost_config : server_config.vhosts)
+        {
+            auto vhost = http::VHostFactory::Create(vhost_config);
+
+            http::dispatcher.add_vhost(vhost);
+        }
     }
     catch (const std::exception &e)
     {
         std::cerr << e.what() << std::endl;
         return 1;
-    }
-
-    for (auto vhost_config : server_config.vhosts)
-    {
-        auto vhost = http::VHostFactory::Create(vhost_config);
-
-        http::dispatcher.add_vhost(vhost);
     }
 
     if (dry)

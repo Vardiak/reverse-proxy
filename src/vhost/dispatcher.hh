@@ -34,6 +34,7 @@ namespace http
         ** Dispatcher.
         */
         std::map<std::string, shared_vhost> vhosts_;
+        std::optional<shared_vhost> default_;
     };
 
     /**

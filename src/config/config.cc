@@ -1,6 +1,7 @@
 #include "config.hh"
 
 #include <fstream>
+#include <regex>
 
 #include "error/init-error.hh"
 #include "error/parsing-error.hh"
@@ -29,7 +30,8 @@ namespace http
                 throw http::InitializationError("invalid vhost");
             else if (!vhost_parsed["ip"].is_string())
                 throw http::InitializationError("invalid ip");
-            else if (!vhost_parsed["port"].is_number_integer())
+            else if (!vhost_parsed["port"].is_number_unsigned()
+                     || vhost_parsed["port"] > 65535)
                 throw http::InitializationError("invalid port");
             else if (!vhost_parsed["server_name"].is_string())
                 throw http::InitializationError("invalid server name");
@@ -70,7 +72,13 @@ namespace http
             {
                 vhost.auth_basic = vhost_parsed["auth_basic"];
                 for (std::string user : vhost_parsed["auth_basic_users"])
+                {
+                    const std::regex auth(".+:.+");
+                    if (!std::regex_match(user, auth))
+                        throw InitializationError(
+                            "Basic users' syntax must be username:password");
                     vhost.auth_basic_users.insert(user);
+                }
             }
             if (vhost_parsed.contains("ssl_cert"))
             {

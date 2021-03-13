@@ -1,0 +1,17 @@
+{
+    "vhosts": [
+        {
+            "ip": "0.0.0.0",
+            "port": 8000,
+            "server_name": "localhost",
+            "root": "./tests/static",
+            "default_file": "index.html",
+            "auth_basic": "Hey",
+            "auth_basic_users": [
+                "Vardiak:salut",
+				"noTbanbg"
+            ],
+            "default_vhost": true
+        }
+    ]
+}

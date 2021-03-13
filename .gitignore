@@ -1,6 +1,7 @@
 .vsls.json
 build-aux
 .zsh_history
+tests/func/env
 
 config.h
 libtool
