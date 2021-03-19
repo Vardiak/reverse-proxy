@@ -2,6 +2,7 @@
 build-aux
 .zsh_history
 tests/func/env
+.ccache
 
 config.h
 libtool

@@ -14,6 +14,8 @@ RUN sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh
 
 RUN pacman -Sy --noconfirm openssl mkcert python-pip
 RUN pip install requests
+RUN pacman -Sy --noconfirm ccache
 
+RUN echo "alias configure=\"CXX='ccache g++' ./configure\"" >> ~/.zshrc
 
 CMD /bin/zsh

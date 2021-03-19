@@ -30,7 +30,7 @@ Test(response_parse_double, full)
         std::filesystem::file_size("/root/data/tests/static/index.html");
 
     auto response = std::make_shared<Response>(*req1, OK);
-    cr_assert(response->headers["Connection"].compare("close") == 0);
+    cr_assert(response->headers["Connection"].compare("keep-alive") == 0);
     cr_assert(
         response->headers["Content-Length"].compare(std::to_string(file_size))
         == 0);
@@ -44,7 +44,7 @@ Test(response_parse_double, full)
     auto req2 = r2.value();
 
     auto response2 = std::make_shared<Response>(*req2, OK);
-    cr_assert(response2->headers["Connection"].compare("close") == 0);
+    cr_assert(response2->headers["Connection"].compare("keep-alive") == 0);
     cr_assert(response2->headers["Content-Length"].compare("0") == 0);
     cr_assert(response2->content_length == 0);
     cr_assert(!response2->is_file);

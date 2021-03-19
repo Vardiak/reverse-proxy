@@ -9,13 +9,202 @@
 
 namespace http
 {
+    struct UpstreamConfig parse_upstream(const json &parsed)
+    {
+        struct UpstreamConfig res;
+        if (!parsed.is_object())
+            throw http::InitializationError("invalid host");
+
+        if (!parsed.contains("method"))
+            throw http::InitializationError("upstreams must have a method");
+
+        std::string method = parsed["method"];
+        if (method == "failover")
+            res.method = UpstreamConfig::Method::FAILOVER;
+        else if (method == "round-robin")
+            res.method = UpstreamConfig::Method::ROUND_ROBIN;
+        else if (method == "fail-robin")
+            res.method = UpstreamConfig::Method::FAIL_ROBIN;
+        else
+            throw http::InitializationError("unknown upstream method");
+
+        if (!parsed.contains("hosts") || !parsed["hosts"].is_array()
+            || parsed["hosts"].size() == 0)
+            throw http::InitializationError(
+                "upstreams' hosts must be defined with at least one element");
+
+        for (auto &parsed_host : parsed["hosts"])
+        {
+            UpstreamHost host;
+
+            if (!parsed_host.contains("ip"))
+                throw http::InitializationError("host must have an ip");
+            host.ip = parsed_host["ip"];
+
+            if (!parsed_host.contains("port")
+                || !parsed_host["port"].is_number_unsigned()
+                || parsed_host["port"] > 65535)
+                throw http::InitializationError("invalid host port");
+            host.port = parsed_host["port"];
+
+            if (parsed_host.contains("weight"))
+                host.weight = parsed_host["weight"];
+
+            if (res.method == UpstreamConfig::Method::FAILOVER
+                || res.method == UpstreamConfig::Method::FAIL_ROBIN)
+            {
+                if (!parsed_host.contains("health"))
+                    throw http::InitializationError("missing health");
+                host.health = parsed_host["health"];
+            }
+
+            res.hosts.push_back(host);
+        }
+
+        return res;
+    }
+
+    struct VHostProxyPass parse_proxy_pass(const json &parsed)
+    {
+        VHostProxyPass proxy_pass;
+        if (!parsed.is_object())
+            throw http::InitializationError("invalid proxy_pass");
+
+        if ((parsed.contains("ip") || parsed.contains("port"))
+            && parsed.contains("upstream"))
+            throw http::InitializationError(
+                "can't have an upstream alongside ip or port");
+
+        if (parsed.contains("upstream"))
+        {
+            if (!parsed["upstream"].is_string())
+                throw http::InitializationError("upstream must be a string");
+
+            proxy_pass.upstream = parsed["upstream"];
+        }
+        else
+        {
+            if (!(parsed.contains("ip") && parsed["ip"].is_string()
+                  && parsed.contains("port") && parsed["port"].is_number()))
+                throw http::InitializationError(
+                    "ip and port must defined and valid together");
+
+            if (!parsed["port"].is_number_unsigned() || parsed["port"] > 65535)
+                throw http::InitializationError("invalid port proxy pass");
+            proxy_pass.ip = parsed["ip"];
+            proxy_pass.port = parsed["port"];
+        }
+
+        if (parsed.contains("proxy_set_header"))
+            for (auto &[key, value] : parsed["proxy_set_header"].items())
+                proxy_pass.proxy_set_header[key] = value;
+
+        if (parsed.contains("proxy_remove_header"))
+            for (auto &value : parsed["proxy_remove_header"])
+                proxy_pass.proxy_remove_header.push_back(value);
+
+        if (parsed.contains("set_header"))
+            for (auto &[key, value] : parsed["set_header"].items())
+                proxy_pass.set_header[key] = value;
+
+        if (parsed.contains("remove_header"))
+            for (auto &value : parsed["remove_header"])
+                proxy_pass.remove_header.push_back(value);
+
+        return proxy_pass;
+    }
+
+    struct VHostConfig parse_vhost(const json &parsed, bool &default_vhost)
+    {
+        VHostConfig vhost;
+        if (!parsed.is_object())
+            throw http::InitializationError("invalid vhost");
+
+        if (!parsed["ip"].is_string())
+            throw http::InitializationError("invalid ip");
+        vhost.ip = parsed["ip"];
+
+        if (!parsed["port"].is_number_unsigned() || parsed["port"] > 65535)
+            throw http::InitializationError("invalid port");
+        vhost.port = parsed["port"];
+
+        if (!parsed["server_name"].is_string())
+            throw http::InitializationError("invalid server name");
+        vhost.server_name = parsed["server_name"];
+
+        if (parsed.contains("proxy_pass")
+            && (parsed.contains("root") || parsed.contains("default_file")))
+            throw http::InitializationError(
+                "can't have a proxy_pass alongside root or default_file");
+
+        if (parsed.contains("root"))
+        {
+            if (!parsed["root"].is_string())
+                throw http::InitializationError("invalid root");
+            vhost.root = parsed["root"];
+
+            if (parsed.contains("default_file"))
+            {
+                if (!parsed["default_file"].is_string())
+                    throw http::InitializationError("invalid default file");
+                vhost.default_file = parsed["default_file"];
+            }
+            else
+                vhost.default_file = "index.html";
+        }
+        else
+        {
+            vhost.proxy_pass = parse_proxy_pass(parsed["proxy_pass"]);
+        }
+
+        if ((parsed.contains("auth_basic") && parsed["auth_basic"].is_string())
+            != (parsed.contains("auth_basic_users")
+                && parsed["auth_basic_users"].is_array()))
+            throw http::InitializationError(
+                "auth_basic and auth_basic_users must be defined together");
+
+        if (parsed.contains("auth_basic"))
+        {
+            vhost.auth_basic = parsed["auth_basic"];
+            for (std::string user : parsed["auth_basic_users"])
+            {
+                const std::regex auth(".+:.+");
+                if (!std::regex_match(user, auth))
+                    throw InitializationError(
+                        "Basic users' syntax must be username:password");
+                vhost.auth_basic_users.insert(user);
+            }
+        }
+
+        if (parsed.contains("default_vhost"))
+        {
+            if (default_vhost || !parsed["default_vhost"].is_boolean())
+                throw http::InitializationError(
+                    "Default vhost must be unique and valid");
+            vhost.default_vhost = true;
+            default_vhost = true;
+        }
+
+        if ((parsed.contains("ssl_cert") && parsed["ssl_cert"].is_string())
+            != (parsed.contains("ssl_key") && parsed["ssl_key"].is_string()))
+            throw http::InitializationError(
+                "ssl_cert and ssl_key must be defined together");
+        if (parsed.contains("ssl_cert"))
+        {
+            vhost.ssl_cert = parsed["ssl_cert"];
+            vhost.ssl_key = parsed["ssl_key"];
+        }
+
+        return vhost;
+    }
+
     struct ServerConfig parse_configuration(const std::string &path)
     {
         ServerConfig config;
 
         std::ifstream file(path);
         json parsed;
-        // Throw parsing error if invalid
+        // Throws parsing error if invalid
         file >> parsed;
 
         bool default_vhost = false;
@@ -24,75 +213,11 @@ namespace http
               && parsed["vhosts"].size() > 0))
             throw http::InitializationError("couldn't find vhosts in config");
 
-        for (json vhost_parsed : parsed["vhosts"])
-        {
-            if (!vhost_parsed.is_object())
-                throw http::InitializationError("invalid vhost");
-            else if (!vhost_parsed["ip"].is_string())
-                throw http::InitializationError("invalid ip");
-            else if (!vhost_parsed["port"].is_number_unsigned()
-                     || vhost_parsed["port"] > 65535)
-                throw http::InitializationError("invalid port");
-            else if (!vhost_parsed["server_name"].is_string())
-                throw http::InitializationError("invalid server name");
-            else if (!vhost_parsed["root"].is_string())
-                throw http::InitializationError("invalid root");
-            else if (vhost_parsed.contains("default_file")
-                     && !vhost_parsed["default_file"].is_string())
-                throw http::InitializationError("invalid default file");
-            else if ((vhost_parsed.contains("auth_basic")
-                      && vhost_parsed["auth_basic"].is_string())
-                     != (vhost_parsed.contains("auth_basic_users")
-                         && vhost_parsed["auth_basic_users"].is_array()))
-                throw http::InitializationError(
-                    "auth_basic and auth_basic_users must be defined together");
-            else if (vhost_parsed.contains("default_vhost")
-                     && (default_vhost
-                         || !vhost_parsed["default_vhost"].is_boolean()))
-                throw http::InitializationError(
-                    "Default vhost must be unique and valid");
-            else if ((vhost_parsed.contains("ssl_cert")
-                      && vhost_parsed["ssl_cert"].is_string())
-                     != (vhost_parsed.contains("ssl_key")
-                         && vhost_parsed["ssl_key"].is_string()))
-                throw http::InitializationError(
-                    "ssl_cert and ssl_key must be defined together");
+        for (auto vhost_parsed : parsed["vhosts"])
+            config.vhosts.push_back(parse_vhost(vhost_parsed, default_vhost));
 
-            VHostConfig vhost;
-            vhost.server_name = vhost_parsed["server_name"];
-            vhost.ip = vhost_parsed["ip"];
-            vhost.port = vhost_parsed["port"];
-            vhost.root = vhost_parsed["root"];
-            if (vhost_parsed.contains("default_file"))
-                vhost.default_file = vhost_parsed["default_file"];
-            else
-                vhost.default_file = "index.html";
-
-            if (vhost_parsed.contains("auth_basic"))
-            {
-                vhost.auth_basic = vhost_parsed["auth_basic"];
-                for (std::string user : vhost_parsed["auth_basic_users"])
-                {
-                    const std::regex auth(".+:.+");
-                    if (!std::regex_match(user, auth))
-                        throw InitializationError(
-                            "Basic users' syntax must be username:password");
-                    vhost.auth_basic_users.insert(user);
-                }
-            }
-            if (vhost_parsed.contains("ssl_cert"))
-            {
-                vhost.ssl_cert = vhost_parsed["ssl_cert"];
-                vhost.ssl_key = vhost_parsed["ssl_key"];
-            }
-            if (vhost_parsed.contains("default_vhost"))
-            {
-                vhost.default_vhost = true;
-                default_vhost = true;
-            }
-
-            config.vhosts.push_back(vhost);
-        }
+        for (auto &[key, value] : parsed["upstreams"].items())
+            config.upstreams[key] = parse_upstream(value);
 
         return config;
     }
