@@ -88,9 +88,7 @@ namespace http
 
         auto res = std::make_shared<Response>(req, OK);
 
-        shared_socket sock = conn->sock_;
-        event_register
-            .register_event<SendResponseEW, shared_socket, shared_res>(
-                std::move(sock), std::move(res));
+        event_register.register_event<SendResponseEW, shared_conn, shared_res>(
+            std::move(conn), std::move(res));
     }
 } // namespace http

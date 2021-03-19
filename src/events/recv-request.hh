@@ -19,9 +19,9 @@ namespace http
     {
     public:
         /**
-         * \brief Create a RecvRequestEW from the shared_socket.
+         * \brief Create a RecvRequestEW from the shared_connection.
          */
-        explicit RecvRequestEW(shared_socket sock, shared_conn conn);
+        explicit RecvRequestEW(shared_conn conn);
 
         void send_error_response(STATUS_CODE STATUS);
 
@@ -32,9 +32,8 @@ namespace http
 
     private:
         /**
-         * \brief Client socket.
+         * \brief Client connection.
          */
-        shared_socket sock_;
         shared_conn conn_;
     };
 } // namespace http

@@ -14,9 +14,8 @@
 
 namespace http
 {
-    RecvRequestEW::RecvRequestEW(shared_socket sock, shared_conn conn)
-        : EventWatcher(sock->fd_get()->fd_, EV_READ)
-        , sock_(sock)
+    RecvRequestEW::RecvRequestEW(shared_conn conn)
+        : EventWatcher(conn->sock_->fd_get()->fd_, EV_READ)
         , conn_(conn)
     {}
 
@@ -24,10 +23,9 @@ namespace http
     {
         auto res = std::make_shared<Response>(status);
 
-        auto sock = sock_;
-        event_register
-            .register_event<SendResponseEW, shared_socket, shared_res>(
-                std::move(sock), std::move(res));
+        auto conn = conn_;
+        event_register.register_event<SendResponseEW, shared_conn, shared_res>(
+            std::move(conn), std::move(res));
 
         event_register.unregister_ew(this);
     }
@@ -36,7 +34,8 @@ namespace http
     {
         char buffer[4096];
 
-        ssize_t read = sock_->recv(buffer, sizeof(buffer));
+        std::cout << "recv" << std::endl;
+        ssize_t read = conn_->sock_->recv(buffer, sizeof(buffer));
         if (read == 0)
         {
             event_register.unregister_ew(this);
@@ -47,13 +46,14 @@ namespace http
 
         try
         {
-            while (auto request = Request::parse(conn_))
+            if (auto request = Request::parse(conn_))
             {
+                std::cout << "parsed" << std::endl;
+
                 Request r = *(request.value().get());
 
                 dispatcher.dispatch(r, conn_);
 
-                // TODO: handle multiple requests
                 event_register.unregister_ew(this);
             }
         }

@@ -193,10 +193,8 @@ namespace http
         res->headers["WWW-Authenticate"] =
             "Basic realm=\"" + conf_.auth_basic + "\"";
 
-        shared_socket sock = conn->sock_;
-        event_register
-            .register_event<SendResponseEW, shared_socket, shared_res>(
-                std::move(sock), std::move(res));
+        event_register.register_event<SendResponseEW, shared_conn, shared_res>(
+            std::move(conn), std::move(res));
 
         return false;
     }

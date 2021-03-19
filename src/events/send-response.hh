@@ -22,18 +22,22 @@ namespace http
         /**
          * \brief Create a SendResponseEW from the shared_socket.
          */
-        explicit SendResponseEW(shared_socket sock, shared_res response);
+        explicit SendResponseEW(shared_conn conn, shared_res response);
 
         /**
          * \brief Receive me
          */
         void operator()() final;
 
+        void send_file();
+        void send_response();
+        void post_send();
+
     private:
         /**
          * \brief Client socket.
          */
-        shared_socket sock_;
+        shared_conn conn_;
         shared_res res_;
 
         std::string raw_;

@@ -24,7 +24,12 @@ namespace http
         : status(s)
         , is_file(true)
     {
-        headers["Connection"] = "close";
+        if (req.headers.count("Connection") != 0
+            && req.headers.at("Connection").find("close") != std::string::npos)
+            headers["Connection"] = "close";
+        else
+            headers["Connection"] = "keep-alive";
+
         set_date();
 
         if (req.method != METHOD::HEAD)

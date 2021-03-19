@@ -12,6 +12,8 @@ RUN wget https://github.com/Snaipe/Criterion/releases/download/v2.3.3/criterion-
 
 RUN sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
 
-RUN pacman -Sy --noconfirm openssl mkcert
+RUN pacman -Sy --noconfirm openssl mkcert python-pip
+RUN pip install requests
+
 
 CMD /bin/zsh

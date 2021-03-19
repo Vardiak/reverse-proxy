@@ -26,10 +26,10 @@ namespace http
 
             if (last == next) // If empty line
             {
+                last = next + 2;
                 if (!req)
                 {
                     // Skip line & continue parsing
-                    last = next + 2;
                     continue;
                 }
 
@@ -42,6 +42,8 @@ namespace http
 
                         if (last + size > s.size())
                             return std::nullopt;
+
+                        last += size;
 
                         r->body = s.substr(last, size);
                     }
@@ -58,7 +60,6 @@ namespace http
                     throw RequestError(BAD_REQUEST);
 
                 req.reset();
-                last = next + 2;
                 return r;
             }
 

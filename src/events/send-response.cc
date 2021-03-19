@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "error/request-error.hh"
+#include "events/recv-request.hh"
 #include "listener.hh"
 #include "misc/fd.hh"
 #include "misc/unistd.hh"
@@ -13,74 +14,90 @@
 
 namespace http
 {
-    SendResponseEW::SendResponseEW(shared_socket sock, shared_res response)
-        : EventWatcher(sock->fd_get()->fd_, EV_WRITE)
-        , sock_(sock)
+    SendResponseEW::SendResponseEW(shared_conn conn, shared_res response)
+        : EventWatcher(conn->sock_->fd_get()->fd_, EV_WRITE)
+        , conn_(conn)
         , res_(response)
         , raw_(response->to_string())
     {}
 
+    void SendResponseEW::send_file()
+    {
+        size_t size = res_->content_length;
+        auto fd = std::make_shared<misc::FileDescriptor>(
+            sys::open(res_->body.c_str(), O_RDONLY));
+
+        off_t temp = cursor;
+
+        try
+        {
+            std::cout << "sendfile" << std::endl;
+            ssize_t r = conn_->sock_->sendfile(fd, temp,
+                                               std::min(4096UL, size - cursor));
+
+            if (r == 0)
+                http::event_register.unregister_ew(this);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << std::endl;
+            http::event_register.unregister_ew(this);
+        }
+
+        cursor = temp;
+
+        if (cursor == size)
+            post_send();
+    }
+
+    void SendResponseEW::send_response()
+    {
+        try
+        {
+            std::cout << "send" << std::endl;
+            size_t sent = conn_->sock_->send(raw_.c_str() + cursor,
+                                             raw_.length() - cursor);
+
+            if (sent == 0)
+                http::event_register.unregister_ew(this);
+
+            cursor += sent;
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << std::endl;
+            http::event_register.unregister_ew(this);
+        }
+
+        if (raw_.length() == cursor)
+        {
+            if (res_->is_file)
+            {
+                cursor = 0;
+                sending_file = true;
+            }
+            else
+                post_send();
+        }
+    }
+
+    void SendResponseEW::post_send()
+    {
+        std::cout << res_->headers["Connection"] << std::endl;
+        if (res_->headers["Connection"] == "keep-alive")
+        {
+            auto conn = conn_;
+            event_register.register_event<RecvRequestEW, shared_conn>(
+                std::move(conn));
+        }
+        http::event_register.unregister_ew(this);
+    }
+
     void SendResponseEW::operator()()
     {
-        // TOOD: cap size
-
         if (sending_file)
-        {
-            size_t size = res_->content_length;
-            auto fd = std::make_shared<misc::FileDescriptor>(
-                sys::open(res_->body.c_str(), O_RDONLY));
-
-            off_t temp = cursor;
-
-            try
-            {
-                ssize_t r =
-                    sock_->sendfile(fd, temp, std::min(4096UL, size - cursor));
-
-                if (r == 0)
-                    http::event_register.unregister_ew(this);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << e.what() << std::endl;
-                http::event_register.unregister_ew(this);
-            }
-
-            cursor = temp;
-
-            if (cursor == size)
-                http::event_register.unregister_ew(this);
-        }
+            send_file();
         else
-        {
-            try
-            {
-                size_t sent =
-                    sock_->send(raw_.c_str() + cursor, raw_.length() - cursor);
-
-                if (sent == 0)
-                    http::event_register.unregister_ew(this);
-
-                cursor += sent;
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << e.what() << std::endl;
-                http::event_register.unregister_ew(this);
-            }
-
-            if (raw_.length() == cursor)
-            {
-                if (res_->is_file)
-                {
-                    cursor = 0;
-                    sending_file = true;
-                }
-                else
-                {
-                    http::event_register.unregister_ew(this);
-                }
-            }
-        }
+            send_response();
     }
 } // namespace http

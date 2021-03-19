@@ -27,9 +27,8 @@ namespace http
 
             auto conn = std::make_shared<Connection>(client, ip_, port_);
 
-            event_register
-                .register_event<RecvRequestEW, shared_socket, shared_conn>(
-                    std::move(client), std::move(conn));
+            event_register.register_event<RecvRequestEW, shared_conn>(
+                std::move(conn));
         }
         catch (const std::system_error &e)
         {
