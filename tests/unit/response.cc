@@ -16,15 +16,15 @@ Test(response_parse_double, full)
 {
     auto conn = std::make_shared<Connection>(nullptr, "0.0.0.0", 8000);
 
-    cr_assert(Request::parse(conn) == std::nullopt);
-    cr_assert(conn->req == std::nullopt);
+    cr_assert(Request::parse(conn) == nullptr);
+    cr_assert(conn->req == nullptr);
 
     conn->raw += "GET /root/data/tests/static/index.html HTTP/1.1\r\nHost: "
                  "localhost\r\n\r\nHEAD /root/data/tests/static/index.html "
                  "HTTP/1.1\r\nHost: localhost\r\n\r\n";
 
     auto r1 = Request::parse(conn);
-    auto req1 = r1.value();
+    auto req1 = r1;
 
     size_t file_size =
         std::filesystem::file_size("/root/data/tests/static/index.html");
@@ -41,7 +41,7 @@ Test(response_parse_double, full)
               == 0);
 
     auto r2 = Request::parse(conn);
-    auto req2 = r2.value();
+    auto req2 = r2;
 
     auto response2 = std::make_shared<Response>(*req2, OK);
     cr_assert(response2->headers["Connection"].compare("keep-alive") == 0);

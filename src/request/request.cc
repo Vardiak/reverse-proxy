@@ -5,13 +5,13 @@
 
 #include "error/request-error.hh"
 #include "types.hh"
+#include "vhost/connection.hh"
 
 namespace http
 {
-    std::optional<std::shared_ptr<Request>>
-    Request::parse(std::shared_ptr<Connection> conn)
+    std::shared_ptr<Request> Request::parse(std::shared_ptr<Connection> conn)
     {
-        std::optional<std::shared_ptr<Request>> &req = conn->req;
+        std::shared_ptr<Request> &req = conn->req;
         std::string &s = conn->raw;
         size_t &last = conn->last;
 
@@ -22,7 +22,7 @@ namespace http
 
             // If not found, incomplete request
             if (next == std::string::npos)
-                return std::nullopt;
+                return nullptr;
 
             if (last == next) // If empty line
             {
@@ -33,7 +33,7 @@ namespace http
                     continue;
                 }
 
-                std::shared_ptr<Request> r = req.value();
+                std::shared_ptr<Request> r = req;
                 if (r->headers.count("Content-Length") != 0)
                 {
                     try
@@ -41,7 +41,7 @@ namespace http
                         int size = std::stoi(r->headers["Content-Length"]);
 
                         if (last + size > s.size())
-                            return std::nullopt;
+                            return nullptr;
 
                         last += size;
 
@@ -68,7 +68,7 @@ namespace http
             if (!req)
                 req = Request::parse_request_line(line);
             else
-                Request::parse_request_header(line, req.value());
+                req->parse_header(line);
 
             last = next + 2;
         }
@@ -111,23 +111,24 @@ namespace http
                                          http_version.substr(5));
     }
 
-    void Request::parse_request_header(std::string &line,
-                                       std::shared_ptr<Request> req)
+    std::string Request::to_string() const
     {
-        const std::regex header_regex("^(\\S+):[ \t]*(.+?)[ \t]*$");
+        std::string raw;
 
-        std::smatch sm;
-        if (!std::regex_search(line, sm, header_regex))
-            throw RequestError(BAD_REQUEST);
+        raw += method_str.at(method);
+        raw += ' ';
+        raw += target;
+        raw += "HTTP/";
+        raw += http_version;
 
-        std::string key = sm[1];
+        for (auto const &[key, value] : headers)
+            raw += key + ": " + value + "\r\n";
 
-        std::string value = sm[2];
+        raw += "\r\n";
 
-        if (req->headers.count(key) > 0)
-            throw RequestError(BAD_REQUEST);
+        raw += body;
 
-        req->headers[key] = value;
+        return raw;
     }
 
 } // namespace http

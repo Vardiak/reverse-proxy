@@ -10,6 +10,7 @@
 #include "misc/addrinfo/addrinfo.hh"
 #include "request/request.hh"
 #include "vhost/connection.hh"
+#include "vhost/upstream.hh"
 #include "vhost/vhost.hh"
 
 namespace http
@@ -40,6 +41,10 @@ namespace http
          * \param req Request.
          * \param conn std::shared_ptr<Connection>.
          */
-        void respond(Request &, std::shared_ptr<Connection>) final;
+        void respond(shared_req, std::shared_ptr<Connection>) final;
+
+        static shared_socket connect_host(const UpstreamHostConfig &config);
+
+        shared_upstream upstream;
     };
 } // namespace http

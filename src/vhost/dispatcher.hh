@@ -25,7 +25,7 @@ namespace http
         Dispatcher &operator=(Dispatcher &&) = delete;
 
         void add_vhost(shared_vhost);
-        void dispatch(Request &, std::shared_ptr<Connection>);
+        void dispatch(shared_req &r, std::shared_ptr<Connection>);
         std::optional<shared_vhost> find_vhost(std::string server_name,
                                                std::string ip, uint16_t port);
 

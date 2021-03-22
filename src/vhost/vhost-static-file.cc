@@ -66,13 +66,13 @@ namespace http
         return res;
     }
 
-    void VHostStaticFile::respond(Request &req,
+    void VHostStaticFile::respond(shared_req req,
                                   std::shared_ptr<Connection> conn)
     {
         if (!check_auth(req, conn))
             return;
 
-        auto path = normalize_URI(req.target);
+        auto path = normalize_URI(req->target);
 
         if (fs::is_directory(path))
         {
@@ -84,9 +84,10 @@ namespace http
         else if (!fs::is_regular_file(path))
             throw RequestError(FORBIDDEN);
 
-        req.target = path.string();
+        req->target = path.string();
 
-        auto res = std::make_shared<Response>(req, OK);
+        // TODO make response take shared_req ?
+        auto res = std::make_shared<Response>(*req, OK);
 
         event_register.register_event<SendResponseEW, shared_conn, shared_res>(
             std::move(conn), std::move(res));

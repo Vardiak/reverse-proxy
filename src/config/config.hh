@@ -56,7 +56,7 @@ namespace http
         std::optional<VHostProxyPass> proxy_pass;
     };
 
-    struct UpstreamHost
+    struct UpstreamHostConfig
     {
         std::string ip;
         uint16_t port;
@@ -73,7 +73,7 @@ namespace http
             FAIL_ROBIN
         };
         Method method;
-        std::vector<UpstreamHost> hosts;
+        std::vector<UpstreamHostConfig> hosts;
     };
 
     /**

@@ -7,7 +7,6 @@
 
 #include "events/events.hh"
 #include "socket/default-socket.hh"
-#include "socket/socket.hh"
 
 namespace http
 {

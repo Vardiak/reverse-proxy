@@ -154,3 +154,29 @@ Test(config, multiple_default_vhosts)
             == 0);
     }
 }
+
+Test(config, reverse_proxy)
+{
+    auto config =
+        http::parse_configuration("tests/configs/config_reverse_proxy.json");
+    cr_assert(config.upstreams.size() == 1);
+    cr_assert(config.upstreams.count("backend") == 1);
+    cr_assert(config.upstreams["backend"].method
+              == http::UpstreamConfig::Method::FAIL_ROBIN);
+
+    cr_assert(config.upstreams["backend"].hosts.size() == 2);
+    cr_assert(config.upstreams["backend"].hosts[0].ip == "127.0.0.1");
+    cr_assert(config.upstreams["backend"].hosts[0].port == 5000);
+    cr_assert(config.upstreams["backend"].hosts[0].health == "/vie");
+    cr_assert(config.upstreams["backend"].hosts[0].weight == 15);
+
+    cr_assert(config.vhosts.size() == 2);
+    auto vhost = config.vhosts[0];
+    auto proxy_pass = vhost.proxy_pass;
+    cr_assert(proxy_pass);
+    cr_assert(proxy_pass->ip == "127.0.0.1");
+    cr_assert(proxy_pass->set_header["Chief"] == "Lucas the spider");
+
+    auto vhost2 = config.vhosts[1];
+    cr_assert(vhost2.proxy_pass->upstream == "backend");
+}

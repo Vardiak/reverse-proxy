@@ -11,6 +11,7 @@
 #include "misc/readiness/readiness.hh"
 #include "socket/default-socket.hh"
 #include "vhost/dispatcher.hh"
+#include "vhost/upstream.hh"
 #include "vhost/vhost-factory.hh"
 
 int main(int argc, char **argv)
@@ -33,6 +34,15 @@ int main(int argc, char **argv)
     try
     {
         server_config = http::parse_configuration(argv[i]);
+
+        for (auto &[key, value] : server_config.upstreams)
+        {
+            http::shared_upstream upstream =
+                std::make_shared<http::Upstream>(value);
+
+            http::upstreams.push_back(upstream);
+            http::upstreams_map[key] = upstream;
+        }
 
         for (auto vhost_config : server_config.vhosts)
         {

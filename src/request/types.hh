@@ -27,6 +27,12 @@ namespace http
         { "HEAD", METHOD::HEAD }
     };
 
+    static std::map<METHOD, std::string> method_str = {
+        { METHOD::GET, "GET" },
+        { METHOD::POST, "POST" },
+        { METHOD::HEAD, "HEAD" }
+    };
+
     enum STATUS_CODE : uint16_t
     {
         OK = 200,

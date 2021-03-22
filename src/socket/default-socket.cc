@@ -57,9 +57,9 @@ namespace http
         return std::make_shared<DefaultSocket>(cfd);
     }
 
-    void DefaultSocket::connect(const sockaddr *, socklen_t)
+    void DefaultSocket::connect(const sockaddr *addr, socklen_t len)
     {
-        /* FIXME */
+        sys::connect(fd_->fd_, addr, len);
     }
 
 } // namespace http

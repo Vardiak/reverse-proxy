@@ -11,6 +11,7 @@
 #include "request/request.hh"
 #include "request/types.hh"
 #include "socket/socket.hh"
+#include "vhost/vhost.hh"
 
 namespace http
 {
@@ -42,9 +43,11 @@ namespace http
         std::string ip_;
         uint16_t port_;
 
-        std::optional<std::shared_ptr<Request>> req;
+        shared_req req;
         std::string raw;
         size_t last = 0;
+
+        shared_vhost vhost;
     };
 
     using shared_conn = std::shared_ptr<Connection>;

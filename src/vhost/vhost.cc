@@ -7,9 +7,11 @@
 #include "error/init-error.hh"
 #include "error/request-error.hh"
 #include "events/listener.hh"
+#include "events/register.hh"
 #include "events/send-response.hh"
 #include "misc/openssl/ssl.hh"
 #include "socket/ssl-socket.hh"
+#include "vhost/connection.hh"
 
 namespace http
 {
@@ -168,16 +170,16 @@ namespace http
         return out;
     }
 
-    bool VHost::check_auth(Request &req, std::shared_ptr<Connection> conn)
+    bool VHost::check_auth(shared_req req, std::shared_ptr<Connection> conn)
     {
         if (conf_.auth_basic.empty())
             return true;
 
-        if (req.headers.count("Authorization") > 0)
+        if (req->headers.count("Authorization") > 0)
         {
             std::smatch sm;
             const std::regex auth_regex("^([\\w]+) ([0-9a-zA-Z\\+/=]+)$");
-            if (std::regex_search(req.headers["Authorization"], sm, auth_regex)
+            if (std::regex_search(req->headers["Authorization"], sm, auth_regex)
                 && sm[1] == "Basic")
             {
                 std::string credentials = base64_decode(sm[2]);

@@ -50,9 +50,7 @@ namespace http
             {
                 std::cout << "parsed" << std::endl;
 
-                Request r = *(request.value().get());
-
-                dispatcher.dispatch(r, conn_);
+                dispatcher.dispatch(request, conn_);
 
                 event_register.unregister_ew(this);
             }

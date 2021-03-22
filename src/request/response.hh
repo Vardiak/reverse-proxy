@@ -9,16 +9,18 @@
 #include <map>
 #include <variant>
 
+#include "request/message.hh"
 #include "request/request.hh"
 #include "request/types.hh"
 
 namespace http
 {
+    class RecvResponseEW;
     /**
      * \struct Response
      * \brief Value object representing a response.
      */
-    struct Response
+    struct Response : public Message
     {
         explicit Response(const STATUS_CODE &);
         Response(const Request &req, const STATUS_CODE & = STATUS_CODE::OK);
@@ -30,15 +32,16 @@ namespace http
         Response &operator=(Response &&) = default;
         ~Response() = default;
 
-        std::string to_string();
+        std::string to_string() const;
         void set_date();
+        static std::shared_ptr<Response>
+        parse_response_line(const std::string &line);
+        static bool parse(RecvResponseEW &ew);
 
         STATUS_CODE status;
-
-        std::map<std::string, std::string> headers;
+        std::string status_message;
 
         bool is_file;
-        std::string body;
         size_t content_length;
     };
 

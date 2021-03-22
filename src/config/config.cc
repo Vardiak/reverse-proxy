@@ -35,7 +35,7 @@ namespace http
 
         for (auto &parsed_host : parsed["hosts"])
         {
-            UpstreamHost host;
+            UpstreamHostConfig host;
 
             if (!parsed_host.contains("ip"))
                 throw http::InitializationError("host must have an ip");

@@ -37,18 +37,20 @@ namespace http
         vhosts_[key2] = vhost;
     }
 
-    void Dispatcher::dispatch(Request &r, std::shared_ptr<Connection> conn)
+    void Dispatcher::dispatch(shared_req &r, std::shared_ptr<Connection> conn)
     {
-        if (r.headers.count("Host") == 0)
+        if (r->headers.count("Host") == 0)
             throw RequestError(BAD_REQUEST);
 
         // Remove port from host
         std::string domain =
-            r.headers["Host"].substr(0, r.headers["Host"].find(':'));
+            r->headers["Host"].substr(0, r->headers["Host"].find(':'));
 
         auto vhost = find_vhost(domain, conn->ip_, conn->port_);
-        if (!vhost)
+        if (!vhost || (conn->vhost && conn->vhost != vhost.value()))
             throw RequestError(BAD_REQUEST);
+        else if (!conn->vhost)
+            conn->vhost = vhost.value();
 
         vhost.value()->respond(r, conn);
     }

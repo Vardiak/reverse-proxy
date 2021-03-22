@@ -8,8 +8,8 @@
 #include <memory>
 #include <optional>
 
+#include "request/message.hh"
 #include "request/types.hh"
-#include "vhost/connection.hh"
 
 namespace http
 {
@@ -19,7 +19,7 @@ namespace http
      * \struct Request
      * \brief Value object representing a request.
      */
-    struct Request
+    struct Request : public Message
     {
         Request(METHOD m, std::string t, std::string v)
             : method(m)
@@ -32,22 +32,16 @@ namespace http
         Request &operator=(Request &&) = default;
         ~Request() = default;
 
-        static std::optional<std::shared_ptr<Request>>
-            parse(std::shared_ptr<Connection>);
+        static std::shared_ptr<Request> parse(std::shared_ptr<Connection>);
 
         static std::shared_ptr<Request> parse_request_line(std::string &line);
-
-        static void parse_request_header(std::string &line,
-                                         std::shared_ptr<Request> req);
+        std::string to_string() const;
 
         METHOD method;
         std::string target;
         std::string http_version;
-
-        std::string body;
-
-        std::map<std::string, std::string> headers;
-
-        // FIXME: Add members to store the information relative to a request.
     };
+
+    using shared_req = std::shared_ptr<Request>;
+
 } // namespace http

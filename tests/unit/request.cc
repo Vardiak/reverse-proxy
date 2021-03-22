@@ -8,6 +8,7 @@
 #include "error/init-error.hh"
 #include "error/request-error.hh"
 #include "socket/default-socket.hh"
+#include "vhost/connection.hh"
 
 using namespace http;
 
@@ -122,7 +123,7 @@ Test(request_header, success)
 
     std::string s2 = "User-Agent: Mozilla/4.0";
 
-    Request::parse_request_header(s2, req);
+    req->parse_header(s2);
     cr_assert(req->headers["User-Agent"].compare("Mozilla/4.0") == 0);
 }
 
@@ -133,7 +134,7 @@ Test(request_header, optional_whitespace)
 
     std::string s2 = "User-Agent: \t\t    Mozilla/4.0      ";
 
-    Request::parse_request_header(s2, req);
+    req->parse_header(s2);
     cr_assert(req->headers["User-Agent"].compare("Mozilla/4.0") == 0);
 }
 
@@ -146,7 +147,7 @@ Test(request_header, bad_whitespace)
 
     try
     {
-        Request::parse_request_header(s2, req);
+        req->parse_header(s2);
     }
     catch (const RequestError &e)
     {
@@ -160,7 +161,7 @@ Test(host_header, server_name)
     auto req = Request::parse_request_line(s);
 
     std::string s2 = "Host: example.com";
-    Request::parse_request_header(s2, req);
+    req->parse_header(s2);
 
     cr_assert(req->headers["Host"].compare("example.com") == 0);
 }
@@ -171,7 +172,7 @@ Test(host_header, server_name_port)
     auto req = Request::parse_request_line(s);
 
     std::string s2 = "Host: example.com:80";
-    Request::parse_request_header(s2, req);
+    req->parse_header(s2);
 
     cr_assert(req->headers["Host"].compare("example.com:80") == 0);
 }
@@ -182,7 +183,7 @@ Test(host_header, ip_port)
     auto req = Request::parse_request_line(s);
 
     std::string s2 = "Host: 0.0.0.0:80";
-    Request::parse_request_header(s2, req);
+    req->parse_header(s2);
 
     cr_assert(req->headers["Host"].compare("0.0.0.0:80") == 0);
 }
@@ -196,7 +197,7 @@ Test(host_header_fail, port)
 
     try
     {
-        Request::parse_request_header(s2, req);
+        req->parse_header(s2);
     }
     catch (const RequestError &e)
     {
@@ -213,7 +214,7 @@ Test(host_header_fail, empty)
 
     try
     {
-        Request::parse_request_header(s2, req);
+        req->parse_header(s2);
     }
     catch (const RequestError &e)
     {
@@ -230,7 +231,7 @@ Test(host_header_fail, server_name_ip)
 
     try
     {
-        Request::parse_request_header(s2, req);
+        req->parse_header(s2);
     }
     catch (const RequestError &e)
     {
@@ -245,8 +246,8 @@ Test(request_parse, one_shot)
     conn->raw = "GET /hello.htm HTTP/1.1\r\nUser-Agent: Mozilla/4.0\r\nHost: "
                 "www.tutorialspoint.com\r\n\r\n";
 
-    cr_assert(Request::parse(conn) != std::nullopt);
-    cr_assert(conn->req == std::nullopt);
+    cr_assert(Request::parse(conn) != nullptr);
+    cr_assert(conn->req == nullptr);
 }
 
 Test(request_parse, content_length_too_big)
@@ -256,8 +257,8 @@ Test(request_parse, content_length_too_big)
     conn->raw = "GET /hello.htm HTTP/1.1\r\nUser-Agent: Mozilla/4.0\r\nHost: "
                 "www.tutorialspoint.com\r\nContent-Length: 10\r\n\r\n";
 
-    cr_assert(Request::parse(conn) == std::nullopt);
-    cr_assert(conn->req != std::nullopt);
+    cr_assert(Request::parse(conn) == nullptr);
+    cr_assert(conn->req != nullptr);
 }
 
 Test(request_parse, full)
@@ -266,32 +267,32 @@ Test(request_parse, full)
 
     conn->raw = "GET /hel";
 
-    cr_assert(Request::parse(conn) == std::nullopt);
-    cr_assert(conn->req == std::nullopt);
+    cr_assert(Request::parse(conn) == nullptr);
+    cr_assert(conn->req == nullptr);
 
     conn->raw += "lo.htm HTTP/1.1\r\n";
 
-    cr_assert(Request::parse(conn) == std::nullopt);
-    cr_assert(conn->req != std::nullopt);
+    cr_assert(Request::parse(conn) == nullptr);
+    cr_assert(conn->req != nullptr);
 
     conn->raw += "User-Agent: Mozilla/4.0\r\nHost: www.tutorialspoint.com";
 
-    cr_assert(Request::parse(conn) == std::nullopt);
-    cr_assert(conn->req != std::nullopt);
+    cr_assert(Request::parse(conn) == nullptr);
+    cr_assert(conn->req != nullptr);
 
     conn->raw += "\r\n";
 
-    cr_assert(Request::parse(conn) == std::nullopt);
-    cr_assert(conn->req != std::nullopt);
+    cr_assert(Request::parse(conn) == nullptr);
+    cr_assert(conn->req != nullptr);
 
     conn->raw += "\r\n";
 
     auto r = Request::parse(conn);
 
-    cr_assert(conn->req == std::nullopt);
-    cr_assert(r != std::nullopt);
+    cr_assert(conn->req == nullptr);
+    cr_assert(r != nullptr);
 
-    auto req = r.value();
+    auto req = r;
 
     cr_assert(req->headers["User-Agent"].compare("Mozilla/4.0") == 0);
     cr_assert(req->headers["Host"].compare("www.tutorialspoint.com") == 0);
@@ -304,24 +305,24 @@ Test(request_parse_double, full)
 {
     auto conn = std::make_shared<Connection>(nullptr, "0.0.0.0", 8000);
 
-    cr_assert(Request::parse(conn) == std::nullopt);
-    cr_assert(conn->req == std::nullopt);
+    cr_assert(Request::parse(conn) == nullptr);
+    cr_assert(conn->req == nullptr);
 
     conn->raw += "GET / HTTP/1.1\r\nHost: localhost\r\n\r\nGET / "
                  "HTTP/1.1\r\nHost: example.com\r\n\r\n";
     auto r1 = Request::parse(conn);
-    cr_assert(conn->req == std::nullopt);
-    cr_assert(r1 != std::nullopt);
-    auto req1 = r1.value();
+    cr_assert(conn->req == nullptr);
+    cr_assert(r1 != nullptr);
+    auto req1 = r1;
     cr_assert(req1->headers["Host"].compare("localhost") == 0);
     cr_assert(req1->method == METHOD::GET);
     cr_assert(req1->http_version.compare("1.1") == 0);
 
     auto r2 = Request::parse(conn);
-    cr_assert(conn->req == std::nullopt);
-    cr_assert(r2 != std::nullopt);
+    cr_assert(conn->req == nullptr);
+    cr_assert(r2 != nullptr);
 
-    auto req2 = r2.value();
+    auto req2 = r2;
     cr_assert(req2->headers["Host"].compare("example.com") == 0);
     cr_assert(req2->method == METHOD::GET);
     cr_assert(req2->http_version.compare("1.1") == 0);

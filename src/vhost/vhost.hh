@@ -9,15 +9,15 @@
 
 #include "config/config.hh"
 #include "error/not-implemented.hh"
-#include "events/register.hh"
 #include "misc/addrinfo/addrinfo.hh"
 #include "request/request.hh"
 #include "request/response.hh"
 #include "socket/default-socket.hh"
-#include "vhost/connection.hh"
 
 namespace http
 {
+    struct Connection;
+
     /**
      * \class VHost
      * \brief Abstract class representing a VHost.
@@ -45,7 +45,7 @@ namespace http
          * \param req Request.
          * \param conn Connection.
          */
-        virtual void respond(Request &, std::shared_ptr<Connection>) = 0;
+        virtual void respond(shared_req, std::shared_ptr<Connection>) = 0;
 
         inline const VHostConfig &conf_get() const noexcept
         {
@@ -57,7 +57,7 @@ namespace http
         shared_socket prepare_socket(bool ssl);
         static int sni_callback(SSL *ssl, int *, void *arg);
 
-        bool check_auth(Request &req, std::shared_ptr<Connection> conn);
+        bool check_auth(shared_req, std::shared_ptr<Connection>);
         static std::string base64_decode(const std::string &in);
 
     protected:

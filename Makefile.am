@@ -48,11 +48,15 @@ SOURCES = \
           src/events/listener.cc \
           src/events/recv-request.cc \
           src/events/recv-request.hh \
+          src/events/recv-response.cc \
+          src/events/recv-response.hh \
           src/events/register.cc \
           src/events/register.hh \
           src/events/register.hxx \
           src/events/send-response.cc \
           src/events/send-response.hh \
+          src/events/send-request.cc \
+          src/events/send-request.hh \
           src/misc/addrinfo/addrinfo-error.cc \
           src/misc/addrinfo/addrinfo-error.hh \
           src/misc/addrinfo/addrinfo-iterator.hh \
@@ -74,6 +78,8 @@ SOURCES = \
 	  src/misc/readiness/readiness.hh \
           src/request/error.cc \
           src/request/error.hh \
+          src/request/message.cc \
+          src/request/message.hh \
           src/request/request.cc \
           src/request/request.hh \
           src/request/response.cc \
@@ -87,9 +93,12 @@ SOURCES = \
           src/vhost/connection.hh \
           src/vhost/dispatcher.cc \
           src/vhost/dispatcher.hh \
+          src/vhost/upstream.cc \
+          src/vhost/upstream.hh \
           src/vhost/vhost-factory.hh \
           src/vhost/vhost-factory.cc \
           src/vhost/vhost-reverse-proxy.hh \
+          src/vhost/vhost-reverse-proxy.cc \
           src/vhost/vhost-static-file.hh \
           src/vhost/vhost-static-file.cc \
           src/vhost/vhost.hh \
