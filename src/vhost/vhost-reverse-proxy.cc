@@ -47,14 +47,15 @@ namespace http
                 shared_socket socket = std::make_shared<DefaultSocket>(
                     a.ai_family, a.ai_socktype, a.ai_protocol);
 
-                fcntl(socket->fd_get()->fd_, F_SETFL, O_NONBLOCK);
-
                 socket->connect(a.ai_addr, a.ai_addrlen);
+
+                fcntl(socket->fd_get()->fd_, F_SETFL, O_NONBLOCK);
 
                 return socket;
             }
             catch (const std::system_error &e)
             {
+                std::cerr << e.what() << std::endl;
                 continue;
             }
         }
@@ -85,8 +86,19 @@ namespace http
 
         auto backend_sock = connect_host(host.config);
 
-        SendRequestEW::start(backend_sock, req, [conn](shared_res) {
-            // SendReponseEW.start(conn, res);
+        SendRequestEW::start(backend_sock, req, [conn, this](shared_res res) {
+            for (auto &[key, value] : this->conf_.proxy_pass->set_header)
+            {
+                res->headers[key] = value;
+            }
+
+            for (auto &key : this->conf_.proxy_pass->remove_header)
+            {
+                if (res->headers.count(key))
+                    res->headers.erase(key);
+            }
+
+            SendResponseEW::start(conn, res);
         });
     }
 } // namespace http

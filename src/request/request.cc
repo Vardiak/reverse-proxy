@@ -26,10 +26,10 @@ namespace http
 
             if (last == next) // If empty line
             {
-                last = next + 2;
                 if (!req)
                 {
                     // Skip line & continue parsing
+                    last = next + 2;
                     continue;
                 }
 
@@ -40,12 +40,10 @@ namespace http
                     {
                         int size = std::stoi(r->headers["Content-Length"]);
 
-                        if (last + size > s.size())
+                        if (last + 2 + size > s.size())
                             return nullptr;
 
-                        last += size;
-
-                        r->body = s.substr(last, size);
+                        r->body = s.substr(last + 2, size);
                     }
                     catch (const std::invalid_argument &e)
                     {
@@ -118,8 +116,10 @@ namespace http
         raw += method_str.at(method);
         raw += ' ';
         raw += target;
+        raw += ' ';
         raw += "HTTP/";
         raw += http_version;
+        raw += http_crlf;
 
         for (auto const &[key, value] : headers)
             raw += key + ": " + value + "\r\n";

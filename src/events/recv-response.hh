@@ -23,7 +23,7 @@ namespace http
          */
         explicit RecvResponseEW(shared_socket sock,
                                 std::function<void(shared_res)> fn)
-            : EventWatcher(sock_->fd_get()->fd_, EV_READ)
+            : EventWatcher(sock->fd_get()->fd_, EV_READ)
             , sock_(sock)
             , callback_(fn)
         {}

@@ -21,6 +21,12 @@ namespace http
         , raw_(response->to_string())
     {}
 
+    void SendResponseEW::start(shared_conn conn, shared_res res)
+    {
+        event_register.register_event<SendResponseEW, shared_conn, shared_res>(
+            std::move(conn), std::move(res));
+    }
+
     void SendResponseEW::send_file()
     {
         size_t size = res_->content_length;
@@ -31,7 +37,6 @@ namespace http
 
         try
         {
-            std::cout << "sendfile" << std::endl;
             ssize_t r = conn_->sock_->sendfile(fd, temp,
                                                std::min(4096UL, size - cursor));
 
@@ -54,7 +59,6 @@ namespace http
     {
         try
         {
-            std::cout << "send" << std::endl;
             size_t sent = conn_->sock_->send(raw_.c_str() + cursor,
                                              raw_.length() - cursor);
 
@@ -83,7 +87,6 @@ namespace http
 
     void SendResponseEW::post_send()
     {
-        std::cout << res_->headers["Connection"] << std::endl;
         if (res_->headers["Connection"] == "keep-alive")
         {
             auto conn = conn_;

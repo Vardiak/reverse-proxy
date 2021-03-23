@@ -89,7 +89,6 @@ namespace http
         // TODO make response take shared_req ?
         auto res = std::make_shared<Response>(*req, OK);
 
-        event_register.register_event<SendResponseEW, shared_conn, shared_res>(
-            std::move(conn), std::move(res));
+        SendResponseEW::start(conn, res);
     }
 } // namespace http

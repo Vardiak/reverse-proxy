@@ -79,7 +79,7 @@ namespace http
 
     shared_res Response::parse_response_line(const std::string &line)
     {
-        shared_res res;
+        shared_res res = std::make_shared<Response>();
 
         const std::regex reg("^HTTP\\/[0-9]\\.[0-9] ([0-9]+) (.+)$");
         std::smatch sm;
@@ -107,10 +107,10 @@ namespace http
 
             if (last == next) // If empty line
             {
-                last = next + 2;
                 if (!res)
                 {
                     // Skip line & continue parsing
+                    last = next + 2;
                     continue;
                 }
 
@@ -118,17 +118,12 @@ namespace http
                 {
                     int size = std::stoi(res->headers["Content-Length"]);
 
-                    if (last + size > s.size())
+                    if (last + 2 + size > s.size())
                         return false;
 
-                    last += size;
-
-                    res->body = s.substr(last, size);
+                    res->body = s.substr(last + 2, size);
                 }
 
-                const std::regex host_regex("^[\\w\\.]+(:[0-9]+)?$");
-
-                res.reset();
                 return true;
             }
 

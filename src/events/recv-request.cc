@@ -34,7 +34,6 @@ namespace http
     {
         char buffer[4096];
 
-        std::cout << "recv" << std::endl;
         ssize_t read = conn_->sock_->recv(buffer, sizeof(buffer));
         if (read == 0)
         {
@@ -48,8 +47,6 @@ namespace http
         {
             if (auto request = Request::parse(conn_))
             {
-                std::cout << "parsed" << std::endl;
-
                 dispatcher.dispatch(request, conn_);
 
                 event_register.unregister_ew(this);

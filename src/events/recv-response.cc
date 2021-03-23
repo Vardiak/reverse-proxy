@@ -1,13 +1,11 @@
 #include "recv-response.hh"
 
 #include <iostream>
-#include <optional>
 #include <vector>
 
 #include "listener.hh"
 #include "misc/unistd.hh"
 #include "register.hh"
-#include "send-response.hh"
 #include "vhost/dispatcher.hh"
 
 namespace http

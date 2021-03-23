@@ -24,6 +24,8 @@ namespace http
          */
         explicit SendResponseEW(shared_conn conn, shared_res response);
 
+        static void start(shared_conn conn, shared_res res);
+
         /**
          * \brief Receive me
          */
