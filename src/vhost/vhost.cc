@@ -170,16 +170,21 @@ namespace http
         return out;
     }
 
-    bool VHost::check_auth(shared_req req, std::shared_ptr<Connection> conn)
+    bool VHost::check_auth(shared_req req, std::shared_ptr<Connection> conn,
+                           bool proxy)
     {
         if (conf_.auth_basic.empty())
             return true;
 
-        if (req->headers.count("Authorization") > 0)
+        auto authorization = proxy ? "Proxy-Authorization" : "Authorization";
+        auto authenticate = proxy ? "Proxy-Authenticate" : "WWW-Authenticate";
+        auto error_code = proxy ? PROXY_AUTHENTICATION_REQUIRED : UNAUTHORIZED;
+
+        if (req->headers.count(authorization) > 0)
         {
             std::smatch sm;
             const std::regex auth_regex("^([\\w]+) ([0-9a-zA-Z\\+/=]+)$");
-            if (std::regex_search(req->headers["Authorization"], sm, auth_regex)
+            if (std::regex_search(req->headers[authorization], sm, auth_regex)
                 && sm[1] == "Basic")
             {
                 std::string credentials = base64_decode(sm[2]);
@@ -190,10 +195,9 @@ namespace http
             }
         }
 
-        auto res = std::make_shared<Response>(UNAUTHORIZED);
+        auto res = std::make_shared<Response>(error_code);
 
-        res->headers["WWW-Authenticate"] =
-            "Basic realm=\"" + conf_.auth_basic + "\"";
+        res->headers[authenticate] = "Basic realm=\"" + conf_.auth_basic + "\"";
 
         event_register.register_event<SendResponseEW, shared_conn, shared_res>(
             std::move(conn), std::move(res));

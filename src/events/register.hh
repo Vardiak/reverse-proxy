@@ -76,6 +76,11 @@ namespace http
             loop_();
         }
 
+        /**
+         * \brief Registry's event loop.
+         */
+        EventLoop loop_;
+
     private:
         /**
          * \brief Map used to store EventWatchers
@@ -85,11 +90,6 @@ namespace http
          */
         std::unordered_map<EventWatcher *, std::shared_ptr<EventWatcher>>
             events_;
-
-        /**
-         * \brief Registry's event loop.
-         */
-        EventLoop loop_;
     };
 
     /**

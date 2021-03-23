@@ -14,10 +14,21 @@
 #include "vhost/upstream.hh"
 #include "vhost/vhost-factory.hh"
 
+void timeout_cb(EV_P_ ev_timer *, int);
+void timeout_cb(EV_P_ ev_timer *, int)
+{
+    for (auto upstream : http::upstreams)
+    {
+        upstream->health_check();
+    }
+}
+
 int main(int argc, char **argv)
 {
     int i = 1;
     bool dry = false;
+    ev_timer timeout_watcher;
+
     if (argc == 3 && strcmp(argv[1], "-t") == 0)
     {
         i++;
@@ -49,6 +60,12 @@ int main(int argc, char **argv)
             auto vhost = http::VHostFactory::Create(vhost_config);
 
             http::dispatcher.add_vhost(vhost);
+        }
+
+        if (!http::upstreams.empty())
+        {
+            ev_timer_init(&timeout_watcher, timeout_cb, 0., 12.0);
+            ev_timer_start(http::event_register.loop_.loop, &timeout_watcher);
         }
     }
     catch (const std::exception &e)

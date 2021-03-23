@@ -69,7 +69,7 @@ namespace http
     void VHostStaticFile::respond(shared_req req,
                                   std::shared_ptr<Connection> conn)
     {
-        if (!check_auth(req, conn))
+        if (!check_auth(req, conn, false))
             return;
 
         auto path = normalize_URI(req->target);

@@ -43,19 +43,14 @@ namespace http
             hosts.push_back(host);
         }
 
-        void health_check()
-        {
-            if (config.method == UpstreamConfig::Method::ROUND_ROBIN)
-                return;
-
-            // TODO: send request to each host
-        }
+        void health_check();
 
         UpstreamHost &find_host();
 
         UpstreamConfig config;
         std::vector<UpstreamHost> hosts;
         unsigned index = 0;
+        unsigned weight_index = 0;
     };
 
     using shared_upstream = std::shared_ptr<Upstream>;

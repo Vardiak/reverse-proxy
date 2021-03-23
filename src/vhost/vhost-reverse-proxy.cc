@@ -60,45 +60,49 @@ namespace http
             }
         }
 
-        throw RequestError(BAD_GATEWAY);
+        return nullptr;
     }
 
     void VHostReverseProxy::respond(shared_req req,
                                     std::shared_ptr<Connection> conn)
     {
-        if (!check_auth(req, conn))
+        if (!check_auth(req, conn, true))
             return;
 
+        bool keep_alive = req->headers.count("Connection") == 0
+            || req->headers["Connection"].find("close") == std::string::npos;
+
+        req->headers["Connection"] = "close";
+
         for (auto &[key, value] : conf_.proxy_pass->proxy_set_header)
-        {
             req->headers[key] = value;
-        }
 
         for (auto &key : conf_.proxy_pass->proxy_remove_header)
-        {
-            if (req->headers.count(key))
-                req->headers.erase(key);
-        }
+            req->headers.erase(key);
 
         // Handle forward headers
 
         auto host = upstream->find_host();
 
         auto backend_sock = connect_host(host.config);
+        if (!backend_sock)
+            throw RequestError(BAD_GATEWAY);
 
-        SendRequestEW::start(backend_sock, req, [conn, this](shared_res res) {
-            for (auto &[key, value] : this->conf_.proxy_pass->set_header)
-            {
-                res->headers[key] = value;
-            }
+        SendRequestEW::start(
+            backend_sock, req, [this, conn, keep_alive](shared_res res) {
+                for (auto &[key, value] : this->conf_.proxy_pass->set_header)
+                    res->headers[key] = value;
 
-            for (auto &key : this->conf_.proxy_pass->remove_header)
-            {
-                if (res->headers.count(key))
+                for (auto &key : this->conf_.proxy_pass->remove_header)
                     res->headers.erase(key);
-            }
 
-            SendResponseEW::start(conn, res);
-        });
+                if (res->headers.count("Content-Length") == 0)
+                    res->headers["Content-Length"] = "0";
+
+                res->headers["Connection"] =
+                    keep_alive ? "keep-alive" : "close";
+
+                SendResponseEW::start(conn, res);
+            });
     }
 } // namespace http

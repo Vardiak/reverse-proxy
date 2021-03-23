@@ -57,7 +57,7 @@ namespace http
         shared_socket prepare_socket(bool ssl);
         static int sni_callback(SSL *ssl, int *, void *arg);
 
-        bool check_auth(shared_req, std::shared_ptr<Connection>);
+        bool check_auth(shared_req, std::shared_ptr<Connection>, bool);
         static std::string base64_decode(const std::string &in);
 
     protected:
