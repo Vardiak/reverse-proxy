@@ -25,6 +25,7 @@ namespace http
         ~Message() = default;
 
         virtual std::string to_string() const = 0;
+        void set_date();
 
         void parse_header(std::string &line);
 

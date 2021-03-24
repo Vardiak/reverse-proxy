@@ -68,15 +68,6 @@ namespace http
         return raw;
     }
 
-    void Response::set_date()
-    {
-        char buf[1000];
-        time_t now = time(0);
-        struct tm tm = *gmtime(&now);
-        strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", &tm);
-        headers["Date"] = buf;
-    }
-
     shared_res Response::parse_response_line(const std::string &line)
     {
         shared_res res = std::make_shared<Response>();

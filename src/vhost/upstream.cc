@@ -14,14 +14,18 @@ namespace http
 
         for (auto &host : hosts)
         {
-            auto req = std::make_shared<Request>(METHOD::GET,
-                                                 host.config.health, "1.1");
             auto sock = VHostReverseProxy::connect_host(host.config);
             if (!sock)
             {
                 host.up = false;
                 continue;
             }
+            auto req = std::make_shared<Request>(METHOD::GET,
+                                                 host.config.health, "1.1");
+            req->set_date();
+            req->headers["Host"] =
+                host.config.ip + ":" + std::to_string(host.config.port);
+            req->headers["Connection"] = "close";
             SendRequestEW::start(sock, req, [&host](shared_res res) {
                 host.up = res->status == OK;
             });

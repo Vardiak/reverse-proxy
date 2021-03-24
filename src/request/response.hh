@@ -33,7 +33,6 @@ namespace http
         ~Response() = default;
 
         std::string to_string() const;
-        void set_date();
         static std::shared_ptr<Response>
         parse_response_line(const std::string &line);
         static bool parse(RecvResponseEW &ew);
