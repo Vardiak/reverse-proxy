@@ -69,6 +69,11 @@ namespace http
         if (!check_auth(req, conn, true))
             return;
 
+        auto host = upstream->find_host();
+        auto backend_sock = connect_host(host.config);
+        if (!backend_sock)
+            throw RequestError(BAD_GATEWAY);
+
         bool keep_alive = req->headers.count("Connection") == 0
             || req->headers["Connection"].find("close") == std::string::npos;
 
@@ -81,12 +86,16 @@ namespace http
             req->headers.erase(key);
 
         // Handle forward headers
+        std::string forwarded = "for=" + conn->ip_
+            + ";host=" + req->headers["Host"]
+            + ";proto=" + (conf_.ssl_cert.empty() ? "http" : "https");
+        if (req->headers.count("Forwarded"))
+            req->headers["Forwarded"] += "," + forwarded;
+        else
+            req->headers["Forwarded"] = forwarded;
 
-        auto host = upstream->find_host();
-
-        auto backend_sock = connect_host(host.config);
-        if (!backend_sock)
-            throw RequestError(BAD_GATEWAY);
+        req->headers["Host"] =
+            host.config.ip + ":" + std::to_string(host.config.port);
 
         SendRequestEW::start(
             backend_sock, req, [this, conn, keep_alive](shared_res res) {
