@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <iostream>
 #include <regex>
+#include <sstream>
 #include <time.h>
 
 #include "error/init-error.hh"
@@ -63,6 +64,50 @@ namespace http
         return nullptr;
     }
 
+    static std::vector<std::string> split(std::string str, char delimiter)
+    {
+        std::stringstream stream(str);
+        std::vector<std::string> res;
+        std::string s;
+        while (std::getline(stream, s, delimiter))
+            res.push_back(s);
+        return res;
+    }
+
+    static void forwarded_transition(shared_req req)
+    {
+        if (req->headers.count("Forwarded") != 0)
+            return;
+
+        bool for_ip = req->headers.count("X-Forwarded-For") != 0;
+        bool host = req->headers.count("X-Forwarded-Host") != 0;
+        bool proto = req->headers.count("X-Forwarded-Proto") != 0;
+
+        if ((for_ip && host) || (host && proto) || (proto && for_ip)
+            || (!proto && !for_ip && !host))
+            return;
+
+        std::string prop = for_ip ? "For" : host ? "Host" : "Proto";
+        std::string prop_lower = for_ip ? "for=" : host ? "host=" : "proto=";
+
+        std::vector<std::string> forwarded =
+            split(req->headers["X-Forwarded-" + prop], ',');
+        std::string res;
+        for (size_t i = 0; i < forwarded.size(); i++)
+        {
+            res += prop_lower;
+            if (for_ip && forwarded[i].find(':') != std::string::npos)
+                res += "\"[" + forwarded[i] + "]\"";
+            else
+                res += forwarded[i];
+            if (i != forwarded.size() - 1)
+                res += ",";
+        }
+
+        req->headers.erase("X-Forwarded-" + prop);
+        req->headers["Forwarded"] = res;
+    }
+
     void VHostReverseProxy::respond(shared_req req,
                                     std::shared_ptr<Connection> conn)
     {
@@ -84,6 +129,8 @@ namespace http
 
         for (auto &key : conf_.proxy_pass->proxy_remove_header)
             req->headers.erase(key);
+
+        forwarded_transition(req);
 
         // Handle forward headers
         std::string forwarded = "for=" + conn->ip_
