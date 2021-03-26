@@ -47,4 +47,6 @@ namespace http
 
         shared_upstream upstream;
     };
+
+    void forwarded_transition(shared_req req);
 } // namespace http

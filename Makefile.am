@@ -123,7 +123,7 @@ if USING_CRITERION
  check_PROGRAMS = testsuite
  TESTS = $(check_PROGRAMS)
 
- testsuite_SOURCES = tests/unit/config.cc tests/unit/request.cc tests/unit/response.cc $(SOURCES)
+ testsuite_SOURCES = tests/unit/config.cc tests/unit/request.cc tests/unit/response.cc tests/unit/forwarded_transition.cc $(SOURCES)
  testsuite_CXXFLAGS = $(AM_CXXFLAGS) $(CRITERION_CFLAGS)
  testsuite_CPPFLAGS = $(AM_CPPFLAGS)
  testsuite_LDFLAGS = $(AM_LDFLAGS) $(CRITERION_LIBS)

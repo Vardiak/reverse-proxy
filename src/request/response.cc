@@ -58,9 +58,9 @@ namespace http
         raw += http_crlf;
 
         for (auto const &[key, value] : headers)
-            raw += key + ": " + value + "\r\n";
+            raw += key + ": " + value + http_crlf;
 
-        raw += "\r\n";
+        raw += http_crlf;
 
         if (!is_file)
             raw += body;

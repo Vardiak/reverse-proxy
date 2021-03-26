@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <set>
 
@@ -64,7 +65,8 @@ int main(int argc, char **argv)
 
         if (!http::upstreams.empty())
         {
-            ev_timer_init(&timeout_watcher, timeout_cb, 0., 12.0);
+            ev_timer_init(&timeout_watcher, timeout_cb, 0.,
+                          atoi(argv[argc - 1]));
             ev_timer_start(http::event_register.loop_.loop, &timeout_watcher);
         }
     }

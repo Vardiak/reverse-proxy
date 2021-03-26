@@ -32,6 +32,7 @@ namespace http
 
     void SendRequestEW::operator()()
     {
+        // std::cout << raw_;
         try
         {
             size_t sent =

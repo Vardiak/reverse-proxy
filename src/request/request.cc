@@ -51,7 +51,7 @@ namespace http
                     }
                 }
 
-                const std::regex host_regex("^[\\w\\.]+(:[0-9]+)?$");
+                const std::regex host_regex("^[\\w\\.-]+(:[0-9]+)?$");
 
                 if (r->headers.count("Host") == 0
                     || !std::regex_match(r->headers["Host"], host_regex))

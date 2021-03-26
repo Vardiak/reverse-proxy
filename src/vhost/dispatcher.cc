@@ -63,13 +63,18 @@ namespace http
 
         if (vhosts_.count(key) == 0)
         {
-            const std::regex ip_regex("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$");
-            if (!std::regex_match(server_name, ip_regex))
-                return default_;
+            key = server_name + "@0.0.0.0@" + std::to_string(port);
 
-            key = "0.0.0.0@0.0.0.0@" + std::to_string(port);
             if (vhosts_.count(key) == 0)
-                return default_;
+            {
+                const std::regex ip_regex("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$");
+                if (!std::regex_match(server_name, ip_regex))
+                    return default_;
+                key = "0.0.0.0@0.0.0.0@" + std::to_string(port);
+
+                if (vhosts_.count(key) == 0)
+                    return default_;
+            }
         }
         return vhosts_[key];
     }

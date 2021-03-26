@@ -74,7 +74,7 @@ namespace http
         return res;
     }
 
-    static void forwarded_transition(shared_req req)
+    void forwarded_transition(shared_req req)
     {
         if (req->headers.count("Forwarded") != 0)
             return;
@@ -95,13 +95,15 @@ namespace http
         std::string res;
         for (size_t i = 0; i < forwarded.size(); i++)
         {
+            if (forwarded[i][0] == ' ')
+                forwarded[i] = forwarded[i].substr(1);
             res += prop_lower;
             if (for_ip && forwarded[i].find(':') != std::string::npos)
                 res += "\"[" + forwarded[i] + "]\"";
             else
                 res += forwarded[i];
             if (i != forwarded.size() - 1)
-                res += ",";
+                res += ", ";
         }
 
         req->headers.erase("X-Forwarded-" + prop);
@@ -137,7 +139,7 @@ namespace http
             + ";host=" + req->headers["Host"]
             + ";proto=" + (conf_.ssl_cert.empty() ? "http" : "https");
         if (req->headers.count("Forwarded"))
-            req->headers["Forwarded"] += "," + forwarded;
+            req->headers["Forwarded"] += ", " + forwarded;
         else
             req->headers["Forwarded"] = forwarded;
 

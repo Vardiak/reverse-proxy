@@ -1,11 +1,11 @@
 {
     "vhosts": [
         {
-            "ip": "127.0.0.1",
+            "ip": "0.0.0.0",
             "port": 8000,
             "server_name": "localhost",
             "proxy_pass": {
-                "upstream": "backend",
+                "upstream": "rr",
                 "proxy_remove_header": [
                     "Header-Removed",
                     "HTTP_X_FORWARDED_PROTO"
@@ -21,11 +21,57 @@
                     "Tiger"
                 ]
             }
+        },
+        {
+            "ip": "127.0.0.1",
+            "port": 8000,
+            "server_name": "localhost2",
+            "proxy_pass": {
+                "upstream": "fo"
+            }
+        },
+        {
+            "ip": "127.0.0.1",
+            "port": 8000,
+            "server_name": "localhost3",
+            "proxy_pass": {
+                "upstream": "fr"
+            }
         }
     ],
     "upstreams": {
-        "backend": {
+        "rr": {
+            "method": "round-robin",
+            "hosts": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8001,
+                    "weight": 2
+                },
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8002
+                }
+            ]
+        },
+        "fo": {
             "method": "failover",
+            "hosts": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8001,
+                    "health": "/",
+                    "weight": 2
+                },
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8002,
+                    "health": "/"
+                }
+            ]
+        },
+        "fr": {
+            "method": "fail-robin",
             "hosts": [
                 {
                     "ip": "127.0.0.1",
