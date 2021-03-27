@@ -47,7 +47,7 @@ namespace http
          */
         virtual void respond(shared_req, std::shared_ptr<Connection>) = 0;
 
-        inline const VHostConfig &conf_get() const noexcept
+        inline VHostConfig &conf_get() noexcept
         {
             return conf_;
         }
