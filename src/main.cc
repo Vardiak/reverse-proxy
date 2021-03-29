@@ -15,8 +15,7 @@
 #include "vhost/upstream.hh"
 #include "vhost/vhost-factory.hh"
 
-void timeout_cb(EV_P_ ev_timer *, int);
-void timeout_cb(EV_P_ ev_timer *, int)
+static void timeout_cb(EV_P_ ev_timer *, int)
 {
     for (auto upstream : http::upstreams)
     {

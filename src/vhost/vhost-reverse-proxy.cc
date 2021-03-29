@@ -126,16 +126,10 @@ namespace http
 
         req->headers["Connection"] = "close";
 
-        for (auto &[key, value] : conf_.proxy_pass->proxy_set_header)
-            req->headers[key] = value;
-
-        for (auto &key : conf_.proxy_pass->proxy_remove_header)
-            req->headers.erase(key);
-
         forwarded_transition(req);
 
         // Handle forward headers
-        std::string forwarded = "for=" + conn->ip_
+        std::string forwarded = "for=" + conn->client_ip
             + ";host=" + req->headers["Host"]
             + ";proto=" + (conf_.ssl_cert.empty() ? "http" : "https");
         if (req->headers.count("Forwarded"))
@@ -145,6 +139,12 @@ namespace http
 
         req->headers["Host"] =
             host.config.ip + ":" + std::to_string(host.config.port);
+
+        for (auto &[key, value] : conf_.proxy_pass->proxy_set_header)
+            req->headers[key] = value;
+
+        for (auto &key : conf_.proxy_pass->proxy_remove_header)
+            req->headers.erase(key);
 
         SendRequestEW::start(
             backend_sock, req, [this, conn, keep_alive](shared_res res) {

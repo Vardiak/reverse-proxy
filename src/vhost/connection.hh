@@ -43,6 +43,8 @@ namespace http
         std::string ip_;
         uint16_t port_;
 
+        std::string client_ip;
+
         shared_req req;
         std::string raw;
         size_t last = 0;

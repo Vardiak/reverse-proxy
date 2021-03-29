@@ -23,7 +23,7 @@
             }
         },
         {
-            "ip": "127.0.0.1",
+            "ip": "0.0.0.0",
             "port": 8000,
             "server_name": "localhost2",
             "proxy_pass": {
@@ -31,7 +31,7 @@
             }
         },
         {
-            "ip": "127.0.0.1",
+            "ip": "0.0.0.0",
             "port": 8000,
             "server_name": "localhost3",
             "proxy_pass": {

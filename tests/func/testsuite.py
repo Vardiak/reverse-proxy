@@ -99,9 +99,11 @@ class TestRequests(unittest.TestCase):
 class ReverseProxy(unittest.TestCase):
 
     def setUp(self):
-        self.backend1 = subprocess.Popen("cd ../../tests/static/basic && python -m http.server 8001 &> /dev/null", shell=True, preexec_fn=os.setsid)
-        self.backend2 = subprocess.Popen("cd ../../tests/static/basic2 && python -m http.server 8002 &> /dev/null", shell=True, preexec_fn=os.setsid)
-        time.sleep(0.2)
+        self.cmd1 = "FLASK_APP=backend.py FLASK_RUN_PORT=8001 flask run &> /dev/null"
+        self.cmd2 = "FLASK_APP=backend.py FLASK_RUN_PORT=8002 flask run &> /dev/null"
+        self.backend1 = subprocess.Popen(self.cmd1, shell=True, preexec_fn=os.setsid)
+        self.backend2 = subprocess.Popen(self.cmd2, shell=True, preexec_fn=os.setsid)
+        time.sleep(0.5)
         self.out = subprocess.Popen("cd ../../ && ./spider ./tests/configs/config_reverse_proxy_test.json 1 &> /dev/null", shell=True, preexec_fn=os.setsid)
         time.sleep(0.2)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -136,7 +138,7 @@ class ReverseProxy(unittest.TestCase):
         a = requests.get('http://localhost:8000')
         self.assertEqual(a.status_code, 502)
 
-        self.backend1 = subprocess.Popen("cd ../../tests/static/basic && python -m http.server 8001 1 &> /dev/null", shell=True, preexec_fn=os.setsid)
+        self.backend1 = subprocess.Popen(self.cmd1, shell=True, preexec_fn=os.setsid)
 
     def test_fail_over(self):
         a = requests.get('http://127.0.0.1:8000', headers={'Host': 'localhost2'})
@@ -151,7 +153,7 @@ class ReverseProxy(unittest.TestCase):
         a = requests.get('http://127.0.0.1:8000', headers={'Host': 'localhost2'})
         self.assertEqual(a.text, 'good2\n')
 
-        self.backend1 = subprocess.Popen("cd ../../tests/static/basic && python -m http.server 8001 1 &> /dev/null", shell=True, preexec_fn=os.setsid)
+        self.backend1 = subprocess.Popen(self.cmd1, shell=True, preexec_fn=os.setsid)
         
     def test_fail_robin(self):
         a = requests.get('http://127.0.0.1:8000', headers={'Host': 'localhost3'})
@@ -175,7 +177,11 @@ class ReverseProxy(unittest.TestCase):
         a = requests.get('http://127.0.0.1:8000', headers={'Host': 'localhost3'})
         self.assertEqual(a.text, 'good2\n')
 
-        self.backend1 = subprocess.Popen("cd ../../tests/static/basic && python -m http.server 8001 1 &> /dev/null", shell=True, preexec_fn=os.setsid)
+        self.backend1 = subprocess.Popen(self.cmd1, shell=True, preexec_fn=os.setsid)
+
+    def test_forwarded(self):
+        a = requests.get('http://localhost:8000/forwarded')
+        self.assertEqual(a.text, 'for=127.0.0.1;host=localhost:8000;proto=http')
 
 
 
