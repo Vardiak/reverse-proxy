@@ -2,6 +2,7 @@
 build-aux
 .zsh_history
 tests/func/env
+tests/func/__pycache__
 .ccache
 
 config.h

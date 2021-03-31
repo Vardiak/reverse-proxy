@@ -41,12 +41,16 @@ namespace http
                                                std::min(4096UL, size - cursor));
 
             if (r == 0)
+            {
                 http::event_register.unregister_ew(this);
+                return;
+            }
         }
         catch (const std::exception &e)
         {
             std::cerr << e.what() << std::endl;
             http::event_register.unregister_ew(this);
+            return;
         }
 
         cursor = temp;
@@ -63,7 +67,10 @@ namespace http
                                              raw_.length() - cursor);
 
             if (sent == 0)
+            {
                 http::event_register.unregister_ew(this);
+                return;
+            }
 
             cursor += sent;
         }
@@ -71,6 +78,7 @@ namespace http
         {
             std::cerr << e.what() << std::endl;
             http::event_register.unregister_ew(this);
+            return;
         }
 
         if (raw_.length() == cursor)

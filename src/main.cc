@@ -28,6 +28,7 @@ int main(int argc, char **argv)
     int i = 1;
     bool dry = false;
     ev_timer timeout_watcher;
+    signal(SIGPIPE, SIG_IGN);
 
     if (argc == 3 && strcmp(argv[1], "-t") == 0)
     {
