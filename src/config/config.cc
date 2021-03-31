@@ -120,15 +120,17 @@ namespace http
         if (!parsed.is_object())
             throw http::InitializationError("invalid vhost");
 
-        if (!parsed["ip"].is_string())
+        if (!parsed.contains("ip") || !parsed["ip"].is_string())
             throw http::InitializationError("invalid ip");
         vhost.ip = parsed["ip"];
 
-        if (!parsed["port"].is_number_unsigned() || parsed["port"] > 65535)
+        if (!parsed.contains("port") || !parsed["port"].is_number_unsigned()
+            || parsed["port"] > 65535)
             throw http::InitializationError("invalid port");
         vhost.port = parsed["port"];
 
-        if (!parsed["server_name"].is_string())
+        if (!parsed.contains("server_name")
+            || !parsed["server_name"].is_string())
             throw http::InitializationError("invalid server name");
         vhost.server_name = parsed["server_name"];
 
