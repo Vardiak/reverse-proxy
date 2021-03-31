@@ -105,6 +105,22 @@ Test(config, auth_basic_users_error)
     }
 }
 
+Test(config, auth_basic_empty)
+{
+    try
+    {
+        http::parse_configuration("tests/configs/config_auth_empty.json");
+        cr_assert(false);
+    }
+    catch (const http::InitializationError &e)
+    {
+        cr_assert(strcmp(e.what(),
+                         "Initialization error: auth_basic and "
+                         "auth_basic_users must be defined together")
+                  == 0);
+    }
+}
+
 Test(config, ssl_key_error)
 {
     try

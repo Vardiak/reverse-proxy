@@ -5,8 +5,8 @@
             "port": 8000,
             "server_name": "localhost",
             "root": "./tests/static",
-			"ssl_cert": "",
-			"ssl_key": "./tests/cert/localhost-key.pem"
+            "auth_basic": "",
+            "auth_basic_users": []
         }
     ]
 }

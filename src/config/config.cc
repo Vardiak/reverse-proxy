@@ -1,6 +1,7 @@
 #include "config.hh"
 
 #include <fstream>
+#include <iostream>
 #include <regex>
 
 #include "error/init-error.hh"
@@ -13,10 +14,10 @@ namespace http
     {
         struct UpstreamConfig res;
         if (!parsed.is_object())
-            throw http::InitializationError("invalid host");
+            throw InitializationError("invalid host");
 
         if (!parsed.contains("method"))
-            throw http::InitializationError("upstreams must have a method");
+            throw InitializationError("upstreams must have a method");
 
         std::string method = parsed["method"];
         if (method == "failover")
@@ -26,11 +27,11 @@ namespace http
         else if (method == "fail-robin")
             res.method = UpstreamConfig::Method::FAIL_ROBIN;
         else
-            throw http::InitializationError("unknown upstream method");
+            throw InitializationError("unknown upstream method");
 
         if (!parsed.contains("hosts") || !parsed["hosts"].is_array()
             || parsed["hosts"].size() == 0)
-            throw http::InitializationError(
+            throw InitializationError(
                 "upstreams' hosts must be defined with at least one element");
 
         for (auto &parsed_host : parsed["hosts"])
@@ -38,13 +39,13 @@ namespace http
             UpstreamHostConfig host;
 
             if (!parsed_host.contains("ip"))
-                throw http::InitializationError("host must have an ip");
+                throw InitializationError("host must have an ip");
             host.ip = parsed_host["ip"];
 
             if (!parsed_host.contains("port")
                 || !parsed_host["port"].is_number_unsigned()
                 || parsed_host["port"] > 65535)
-                throw http::InitializationError("invalid host port");
+                throw InitializationError("invalid host port");
             host.port = parsed_host["port"];
 
             if (parsed_host.contains("weight"))
@@ -54,7 +55,7 @@ namespace http
                 || res.method == UpstreamConfig::Method::FAIL_ROBIN)
             {
                 if (!parsed_host.contains("health"))
-                    throw http::InitializationError("missing health");
+                    throw InitializationError("missing health");
                 host.health = parsed_host["health"];
             }
 
@@ -68,17 +69,17 @@ namespace http
     {
         VHostProxyPass proxy_pass;
         if (!parsed.is_object())
-            throw http::InitializationError("invalid proxy_pass");
+            throw InitializationError("invalid proxy_pass");
 
         if ((parsed.contains("ip") || parsed.contains("port"))
             && parsed.contains("upstream"))
-            throw http::InitializationError(
+            throw InitializationError(
                 "can't have an upstream alongside ip or port");
 
         if (parsed.contains("upstream"))
         {
             if (!parsed["upstream"].is_string())
-                throw http::InitializationError("upstream must be a string");
+                throw InitializationError("upstream must be a string");
 
             proxy_pass.upstream = parsed["upstream"];
         }
@@ -86,11 +87,11 @@ namespace http
         {
             if (!(parsed.contains("ip") && parsed["ip"].is_string()
                   && parsed.contains("port") && parsed["port"].is_number()))
-                throw http::InitializationError(
+                throw InitializationError(
                     "ip and port must defined and valid together");
 
             if (!parsed["port"].is_number_unsigned() || parsed["port"] > 65535)
-                throw http::InitializationError("invalid port proxy pass");
+                throw InitializationError("invalid port proxy pass");
             proxy_pass.ip = parsed["ip"];
             proxy_pass.port = parsed["port"];
         }
@@ -118,37 +119,37 @@ namespace http
     {
         VHostConfig vhost;
         if (!parsed.is_object())
-            throw http::InitializationError("invalid vhost");
+            throw InitializationError("invalid vhost");
 
         if (!parsed.contains("ip") || !parsed["ip"].is_string())
-            throw http::InitializationError("invalid ip");
+            throw InitializationError("invalid ip");
         vhost.ip = parsed["ip"];
 
         if (!parsed.contains("port") || !parsed["port"].is_number_unsigned()
             || parsed["port"] > 65535)
-            throw http::InitializationError("invalid port");
+            throw InitializationError("invalid port");
         vhost.port = parsed["port"];
 
         if (!parsed.contains("server_name")
             || !parsed["server_name"].is_string())
-            throw http::InitializationError("invalid server name");
+            throw InitializationError("invalid server name");
         vhost.server_name = parsed["server_name"];
 
         if (parsed.contains("proxy_pass")
             && (parsed.contains("root") || parsed.contains("default_file")))
-            throw http::InitializationError(
+            throw InitializationError(
                 "can't have a proxy_pass alongside root or default_file");
 
         if (parsed.contains("root"))
         {
             if (!parsed["root"].is_string())
-                throw http::InitializationError("invalid root");
+                throw InitializationError("invalid root");
             vhost.root = parsed["root"];
 
             if (parsed.contains("default_file"))
             {
                 if (!parsed["default_file"].is_string())
-                    throw http::InitializationError("invalid default file");
+                    throw InitializationError("invalid default file");
                 vhost.default_file = parsed["default_file"];
             }
             else
@@ -156,18 +157,22 @@ namespace http
         }
         else
         {
+            if (!parsed.contains("proxy_pass"))
+                throw InitializationError("no vhost type");
             vhost.proxy_pass = parse_proxy_pass(parsed["proxy_pass"]);
         }
 
         if ((parsed.contains("auth_basic") && parsed["auth_basic"].is_string())
             != (parsed.contains("auth_basic_users")
                 && parsed["auth_basic_users"].is_array()))
-            throw http::InitializationError(
+            throw InitializationError(
                 "auth_basic and auth_basic_users must be defined together");
 
         if (parsed.contains("auth_basic"))
         {
             vhost.auth_basic = parsed["auth_basic"];
+            if (vhost.auth_basic.empty() || parsed["auth_basic_users"].empty())
+                throw InitializationError("Empty auth");
             for (std::string user : parsed["auth_basic_users"])
             {
                 const std::regex auth(".+:.+");
@@ -181,7 +186,7 @@ namespace http
         if (parsed.contains("default_vhost"))
         {
             if (default_vhost || !parsed["default_vhost"].is_boolean())
-                throw http::InitializationError(
+                throw InitializationError(
                     "Default vhost must be unique and valid");
             vhost.default_vhost = true;
             default_vhost = true;
@@ -189,12 +194,14 @@ namespace http
 
         if ((parsed.contains("ssl_cert") && parsed["ssl_cert"].is_string())
             != (parsed.contains("ssl_key") && parsed["ssl_key"].is_string()))
-            throw http::InitializationError(
+            throw InitializationError(
                 "ssl_cert and ssl_key must be defined together");
         if (parsed.contains("ssl_cert"))
         {
             vhost.ssl_cert = parsed["ssl_cert"];
             vhost.ssl_key = parsed["ssl_key"];
+            if (vhost.ssl_cert.empty() || vhost.ssl_cert.empty())
+                throw InitializationError("empty string ssl");
         }
 
         return vhost;
@@ -213,7 +220,7 @@ namespace http
 
         if (!(parsed.is_object() && parsed["vhosts"].is_array()
               && parsed["vhosts"].size() > 0))
-            throw http::InitializationError("couldn't find vhosts in config");
+            throw InitializationError("couldn't find vhosts in config");
 
         for (auto vhost_parsed : parsed["vhosts"])
             config.vhosts.push_back(parse_vhost(vhost_parsed, default_vhost));

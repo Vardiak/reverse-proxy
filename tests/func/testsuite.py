@@ -22,7 +22,7 @@ def recvall(sock, m = 9999):
 class TestRequests(unittest.TestCase):
 
     def setUp(self):
-        self.out = subprocess.Popen("cd ../../ && ./spider ./tests/configs/config_basic.json &> /dev/null 12", shell=True, preexec_fn=os.setsid)
+        self.out = subprocess.Popen("cd ../../ && ./spider ./tests/configs/config_basic.json &> /dev/null", shell=True, preexec_fn=os.setsid)
         time.sleep(0.2)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -95,6 +95,81 @@ class TestRequests(unittest.TestCase):
             self.assertTrue(False)
         except:
             pass
+    
+    def test_close_during_answer(self):
+        self.socket.connect(("localhost", 8000))
+        req = "GET /index.html HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n"
+        self.socket.send(req.encode())
+        packet = self.socket.recv(10)
+        self.socket.close()
+
+        a = requests.get('http://localhost:8000')
+        self.assertEqual(a.text, 'good\n')
+
+    def test_close_before_reply(self):
+        self.socket.connect(("localhost", 8000))
+        req = "GET /index.html HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n"
+        self.socket.send(req.encode())
+        self.socket.close()
+
+        a = requests.get('http://localhost:8000')
+        self.assertEqual(a.text, 'good\n')
+
+    def test_xoxo_in_body(self):
+        self.socket.connect(("localhost", 8000))
+        req = "GET /index.html HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 10\r\n\r\nsalut\0\0sam"
+        self.socket.send(req.encode())
+        response = recvall(self.socket, 2)
+        self.socket.close()
+
+        a = requests.get('http://localhost:8000')
+        self.assertEqual(a.text, 'good\n')
+    
+    def test_xoxo_in_request_line(self):
+        self.socket.connect(("example.com", 80))
+        req = "GET /\0index.html HTTP/1.1\r\nHost: example.com\r\n\r\n"
+        self.socket.send(req.encode())
+        response = recvall(self.socket, 2)
+        res = re.match("HTTP\/1\.1 400[\s\S]+", response)
+        print(response)
+        self.assertIsNotNone(res)
+
+        a = requests.get('http://localhost:8000')
+        self.assertEqual(a.text, 'good\n')
+
+    def test_xoxo_in_header_name(self):
+        self.socket.connect(("localhost", 8000))
+        req = "GET /\0index.html HTTP/1.1\r\nHos\0t: 127.0.0.1\r\n\r\n"
+        self.socket.send(req.encode())
+        response = recvall(self.socket, 2)
+        res = re.match("HTTP\/1\.1 400[\s\S]+", response)
+        self.assertIsNotNone(res)
+
+        a = requests.get('http://localhost:8000')
+        self.assertEqual(a.text, 'good\n')
+
+    def test_xoxo_in_bad_header_content(self):
+        self.socket.connect(("localhost", 8000))
+        req = "GET /\0index.html HTTP/1.1\r\nHost: 127.0.0.1\r\nProut: dede\0salut\r\n\r\n"
+        self.socket.send(req.encode())
+        response = recvall(self.socket, 2)
+        res = re.match("HTTP\/1\.1 400[\s\S]+", response)
+        self.assertIsNotNone(res)
+
+        a = requests.get('http://localhost:8000')
+        self.assertEqual(a.text, 'good\n')
+
+    def test_xoxo_in_bad_header_content_2(self):
+        self.socket.connect(("localhost", 8000))
+        req = "GET /\0index.html HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: clos\0e\r\n\r\n"
+        self.socket.send(req.encode())
+        response = recvall(self.socket, 2)
+        print(response)
+        res = re.match("HTTP\/1\.1 400[\s\S]+", response)
+        self.assertIsNotNone(res)
+
+        a = requests.get('http://localhost:8000')
+        self.assertEqual(a.text, 'good\n')
 
 class ReverseProxy(unittest.TestCase):
 
@@ -103,7 +178,7 @@ class ReverseProxy(unittest.TestCase):
         self.cmd2 = "FLASK_APP=backend.py FLASK_RUN_PORT=8002 flask run &> /dev/null"
         self.backend1 = subprocess.Popen(self.cmd1, shell=True, preexec_fn=os.setsid)
         self.backend2 = subprocess.Popen(self.cmd2, shell=True, preexec_fn=os.setsid)
-        time.sleep(0.5)
+        time.sleep(0.8)
         self.out = subprocess.Popen("cd ../../ && ./spider ./tests/configs/config_reverse_proxy_test.json 1 &> /dev/null", shell=True, preexec_fn=os.setsid)
         time.sleep(0.2)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
