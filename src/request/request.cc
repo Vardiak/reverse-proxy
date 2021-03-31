@@ -80,7 +80,7 @@ namespace http
 
         auto str = line.substr(0, i);
         if (str_method.find(str) == str_method.end())
-            throw RequestError(NOT_IMPLEMENTED);
+            throw RequestError(METHOD_NOT_ALLOWED);
         auto method = str_method[str];
 
         size_t j = line.find(' ', i + 1);
