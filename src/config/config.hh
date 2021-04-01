@@ -54,6 +54,7 @@ namespace http
         std::string ssl_key;
         bool default_vhost = false;
         std::optional<VHostProxyPass> proxy_pass;
+        bool auto_index = false;
     };
 
     struct UpstreamHostConfig

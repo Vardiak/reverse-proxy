@@ -136,9 +136,10 @@ namespace http
         vhost.server_name = parsed["server_name"];
 
         if (parsed.contains("proxy_pass")
-            && (parsed.contains("root") || parsed.contains("default_file")))
-            throw InitializationError(
-                "can't have a proxy_pass alongside root or default_file");
+            && (parsed.contains("root") || parsed.contains("default_file")
+                || parsed.contains("auto_index")))
+            throw InitializationError("can't have a proxy_pass alongside root, "
+                                      "default_file or auto_index");
 
         if (parsed.contains("root"))
         {
@@ -154,6 +155,14 @@ namespace http
             }
             else
                 vhost.default_file = "index.html";
+
+            if (parsed.contains("auto_index"))
+            {
+                if (!parsed["auto_index"].is_boolean())
+                    throw InitializationError("invalid auto_index");
+
+                vhost.auto_index = parsed["auto_index"];
+            }
         }
         else
         {
