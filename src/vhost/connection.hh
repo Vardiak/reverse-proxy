@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 
+#include "events/events.hh"
 #include "request/request.hh"
 #include "request/types.hh"
 #include "socket/socket.hh"

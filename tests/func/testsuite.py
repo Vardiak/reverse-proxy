@@ -183,12 +183,48 @@ class Timeout(unittest.TestCase):
     
     def test_transaction(self):
         self.socket.connect(("localhost", 8000))
-        req = "GET /index.html HTTP/1.1\r\n"
-        self.socket.send(req.encode())
-        time.sleep(6)
+        for i in range(11):
+            self.socket.send("....".encode())
+            time.sleep(0.5)
         response = recvall(self.socket, 2)
         res = re.match("HTTP\/1\.1 408[\s\S]+X-Timeout-Reason: Transaction[\s\S]+", response)
         self.assertIsNotNone(res)
+
+    def test_keep_alive(self):
+        self.socket.connect(("localhost", 8000))
+        time.sleep(6)
+        response = recvall(self.socket, 2)
+        res = re.match("HTTP\/1\.1 408[\s\S]+X-Timeout-Reason: Keep-Alive[\s\S]+", response)
+        self.assertIsNotNone(res)
+
+    def test_throughput(self):
+        self.socket.connect(("localhost", 8000))
+        self.socket.send(".".encode())
+        time.sleep(1.1)
+        response = recvall(self.socket, 2)
+        res = re.match("HTTP\/1\.1 408[\s\S]+X-Timeout-Reason: Throughput[\s\S]+", response)
+        self.assertIsNotNone(res)
+
+class ReverseProxyTimeout(unittest.TestCase):
+
+    def setUp(self):
+        self.cmd1 = "FLASK_APP=backend.py FLASK_RUN_PORT=8001 flask run &> /dev/null"
+        self.backend1 = subprocess.Popen(self.cmd1, shell=True, preexec_fn=os.setsid)
+        time.sleep(0.8)
+        self.out = subprocess.Popen("cd ../../ && ./spider ./tests/configs/config_reverse_proxy_timeout.json 1 &> /dev/null", shell=True, preexec_fn=os.setsid)
+        time.sleep(0.2)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def tearDown(self):
+        self.socket.close()
+        os.killpg(os.getpgid(self.out.pid), signal.SIGTERM)
+        os.killpg(os.getpgid(self.backend1.pid), signal.SIGTERM)
+        self.out.communicate()
+        self.backend1.communicate()
+    
+    def test_fail_round_robin(self):
+        a = requests.get('http://localhost:8000/timeout')
+        self.assertEqual(a.status_code, 504)
 
 class ReverseProxy(unittest.TestCase):
 

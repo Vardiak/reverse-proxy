@@ -37,5 +37,8 @@ namespace http
          */
         shared_conn conn_;
         std::shared_ptr<EventTimer> transaction_timeout;
+        std::shared_ptr<EventTimer> keep_alive_timeout;
+        std::shared_ptr<EventTimer> throughput_timeout;
+        size_t throughput_bytes = 0;
     };
 } // namespace http

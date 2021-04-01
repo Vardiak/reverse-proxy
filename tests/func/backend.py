@@ -1,5 +1,6 @@
 import flask
 import os
+import time
 
 app = flask.Flask(__name__)
 
@@ -17,3 +18,8 @@ def forwarded():
 @app.route('/ip')
 def ip():
     return str(flask.request.remote_addr)
+
+@app.route('/timeout')
+def timeout():
+    time.sleep(1.1)
+    return str('did it work?')

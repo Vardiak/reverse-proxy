@@ -147,7 +147,8 @@ namespace http
             req->headers.erase(key);
 
         SendRequestEW::start(
-            backend_sock, req, [this, conn, keep_alive](shared_res res) {
+            backend_sock, req, conf_.proxy_pass->timeout,
+            [this, conn, keep_alive](shared_res res) {
                 for (auto &[key, value] : this->conf_.proxy_pass->set_header)
                     res->headers[key] = value;
 

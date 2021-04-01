@@ -23,15 +23,13 @@ namespace http
          * \brief Create a SendRequestEW from the shared_socket.
          */
         explicit SendRequestEW(shared_socket sock, shared_req req,
-                               std::function<void(shared_res)> fn)
-            : EventWatcher(sock->fd_get()->fd_, EV_WRITE)
-            , sock_(sock)
-            , req_(req)
-            , raw_(req->to_string())
-            , callback_(fn)
-        {}
+                               std::function<void(shared_res)> fn,
+                               std::optional<float> time);
+
+        ~SendRequestEW();
 
         static void start(shared_socket sock, shared_req req,
+                          std::optional<float> time,
                           std::function<void(shared_res)> fn);
 
         /**
@@ -53,5 +51,6 @@ namespace http
         size_t cursor = 0;
 
         std::function<void(shared_res)> callback_;
+        std::shared_ptr<EventTimer> timeout_;
     };
 } // namespace http

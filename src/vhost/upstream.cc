@@ -26,9 +26,9 @@ namespace http
             req->headers["Host"] =
                 host.config.ip + ":" + std::to_string(host.config.port);
             req->headers["Connection"] = "close";
-            SendRequestEW::start(sock, req, [&host](shared_res res) {
-                host.up = res->status == OK;
-            });
+            SendRequestEW::start(
+                sock, req, std::nullopt,
+                [&host](shared_res res) { host.up = res->status == OK; });
         }
     }
 

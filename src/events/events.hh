@@ -74,7 +74,12 @@ namespace http
     class EventTimer
     {
     public:
-        EventTimer(float time, std::function<void()> callback);
+        EventTimer(EventWatcher *watcher, float time, float repeat,
+                   std::function<bool()> callback);
+
+        static std::shared_ptr<EventTimer>
+        start(EventWatcher *watcher, float time, float repeat,
+              std::function<bool()> callback);
 
         EventTimer(const EventTimer &) = delete;
         EventTimer &operator=(const EventTimer &) = delete;
@@ -92,6 +97,7 @@ namespace http
 
         ev_timer timer_;
         bool expired = false;
-        std::function<void()> callback_;
+        std::function<bool()> callback_;
+        EventWatcher *watcher_;
     };
 } // namespace http

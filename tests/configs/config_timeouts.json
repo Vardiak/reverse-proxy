@@ -10,7 +10,7 @@
     "timeout": {
         "keep_alive": 5,
         "transaction": 5,
-        "throughput_val": 1000,
+        "throughput_val": 5,
         "throughput_time": 1
     }
 }
