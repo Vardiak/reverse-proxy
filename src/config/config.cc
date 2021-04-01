@@ -10,6 +10,8 @@
 
 namespace http
 {
+    ServerConfig server_config;
+
     struct UpstreamConfig parse_upstream(const json &parsed)
     {
         struct UpstreamConfig res;
@@ -111,6 +113,13 @@ namespace http
         if (parsed.contains("remove_header"))
             for (auto &value : parsed["remove_header"])
                 proxy_pass.remove_header.push_back(value);
+
+        if (parsed.contains("timeout"))
+        {
+            if (parsed["timeout"] < 0)
+                throw InitializationError("timeouts must be positive");
+            proxy_pass.timeout = parsed["timeout"];
+        }
 
         return proxy_pass;
     }
@@ -216,10 +225,46 @@ namespace http
         return vhost;
     }
 
-    struct ServerConfig parse_configuration(const std::string &path)
+    Timeout parse_timeout(const json &parsed)
     {
-        ServerConfig config;
+        Timeout timeout;
 
+        if (!parsed.is_object())
+            throw InitializationError("Invalid timeout");
+
+        if (parsed.contains("keep_alive"))
+        {
+            if (parsed["keep_alive"] < 0)
+                throw InitializationError("timeouts must be positive");
+            timeout.keep_alive = parsed["keep_alive"];
+        }
+
+        if (parsed.contains("transaction"))
+        {
+            if (parsed["transaction"] < 0)
+                throw InitializationError("timeouts must be positive");
+            timeout.transaction = parsed["transaction"];
+        }
+
+        if (parsed.contains("throughput_val")
+            != parsed.contains("throughput_time"))
+            throw InitializationError(
+                "throughput_val and throughput_time must be defined together");
+        else if (parsed.contains("throughput_val"))
+        {
+            if (parsed["throughput_time"] < 0)
+                throw InitializationError("timeouts must be positive");
+            if (parsed["throughput_val"] < 0)
+                throw InitializationError("throughput val must be positive");
+            timeout.throughput_time = parsed["throughput_time"];
+            timeout.throughput_val = parsed["throughput_val"];
+        }
+
+        return timeout;
+    }
+
+    void parse_configuration(const std::string &path)
+    {
         std::ifstream file(path);
         json parsed;
         // Throws parsing error if invalid
@@ -232,11 +277,13 @@ namespace http
             throw InitializationError("couldn't find vhosts in config");
 
         for (auto vhost_parsed : parsed["vhosts"])
-            config.vhosts.push_back(parse_vhost(vhost_parsed, default_vhost));
+            server_config.vhosts.push_back(
+                parse_vhost(vhost_parsed, default_vhost));
 
         for (auto &[key, value] : parsed["upstreams"].items())
-            config.upstreams[key] = parse_upstream(value);
+            server_config.upstreams[key] = parse_upstream(value);
 
-        return config;
+        if (parsed.contains("timeout"))
+            server_config.timeout = parse_timeout(parsed["timeout"]);
     }
 } // namespace http

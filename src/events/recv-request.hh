@@ -22,6 +22,8 @@ namespace http
          */
         explicit RecvRequestEW(shared_conn conn);
 
+        virtual ~RecvRequestEW();
+
         void send_error_response(STATUS_CODE STATUS);
 
         /**
@@ -34,5 +36,6 @@ namespace http
          * \brief Client connection.
          */
         shared_conn conn_;
+        std::shared_ptr<EventTimer> transaction_timeout;
     };
 } // namespace http

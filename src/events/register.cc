@@ -20,4 +20,18 @@ namespace http
         return events_.erase(ew) != 0;
     }
 
+    std::optional<std::shared_ptr<EventTimer>>
+    EventWatcherRegistry::at(EventTimer *ev)
+    {
+        if (event_timers_.find(ev) == event_timers_.end())
+            return std::nullopt;
+        return event_timers_[ev];
+    }
+
+    bool EventWatcherRegistry::unregister_et(EventTimer *et)
+    {
+        loop_.unregister_timer(et);
+        return event_timers_.erase(et) != 0;
+    }
+
 } // namespace http

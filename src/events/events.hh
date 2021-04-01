@@ -70,4 +70,28 @@ namespace http
          */
         ev_io watcher_;
     };
+
+    class EventTimer
+    {
+    public:
+        EventTimer(float time, std::function<void()> callback);
+
+        EventTimer(const EventTimer &) = delete;
+        EventTimer &operator=(const EventTimer &) = delete;
+        EventTimer(EventTimer &&) = delete;
+        EventTimer &operator=(EventTimer &&) = delete;
+        ~EventTimer() = default;
+
+        ev_timer &timer_get() noexcept
+        {
+            return timer_;
+        }
+
+    protected:
+        static void event_callback(EV_P_ ev_timer *w, int revents);
+
+        ev_timer timer_;
+        bool expired = false;
+        std::function<void()> callback_;
+    };
 } // namespace http

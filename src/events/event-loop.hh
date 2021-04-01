@@ -63,6 +63,22 @@ namespace http
         void unregister_watcher(EventWatcher *);
 
         /**
+         * \brief Activate the given ev_timer.
+         *
+         * Note that only activated timers will receive events.
+         *
+         * \param timer EventTimer* to register in the loop.
+         */
+        void register_timer(EventTimer *);
+
+        /**
+         * \brief Stop the given ev_timer.
+         *
+         * \param timer EventTimer* to unregister in the loop.
+         */
+        void unregister_timer(EventTimer *);
+
+        /**
          * \brief Register SIGINT ev_signal.
          *
          * \param watcher ev_signal* to register in the loop.
