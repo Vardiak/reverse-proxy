@@ -36,7 +36,7 @@ namespace http
 
     void signal_handler(struct ev_loop *l, ev_signal *, int)
     {
-        std::cout << "Gracefully shutdowned..." << std::endl;
+        std::cout << "\nGracefully shutdowned..." << std::endl;
         ev_break(l, EVBREAK_ALL);
     }
 

@@ -32,7 +32,6 @@ namespace http
             char str[INET6_ADDRSTRLEN];
             inet_ntop(AF_INET, &addr.sin_addr, str, INET6_ADDRSTRLEN);
             conn->client_ip = str;
-            std::cout << str << '\n';
             event_register.register_event<RecvRequestEW, shared_conn>(
                 std::move(conn));
         }

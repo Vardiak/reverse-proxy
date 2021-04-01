@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <filesystem>
+
 #include "config/config.hh"
 #include "request/request.hh"
 #include "request/response.hh"
@@ -44,5 +46,7 @@ namespace http
 
         std::filesystem::path normalize_URI(std::string uri);
         std::string uri_decode(std::string &url);
+        void send_auto_index(shared_req req, shared_conn conn,
+                             std::filesystem::path path);
     };
 } // namespace http
