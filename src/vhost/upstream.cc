@@ -20,7 +20,7 @@ namespace http
                 host.up = false;
                 continue;
             }
-            auto req = std::make_shared<Request>(METHOD::GET,
+            auto req = std::make_shared<Request>("GET",
                                                  host.config.health, "1.1");
             req->set_date();
             req->headers["Host"] =

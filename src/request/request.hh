@@ -21,7 +21,7 @@ namespace http
      */
     struct Request : public Message
     {
-        Request(METHOD m, std::string t, std::string v)
+        Request(std::string m, std::string t, std::string v)
             : method(m)
             , target(t)
             , http_version(v)
@@ -37,7 +37,7 @@ namespace http
         static std::shared_ptr<Request> parse_request_line(std::string &line);
         std::string to_string() const;
 
-        METHOD method;
+        std::string method;
         std::string target;
         std::string http_version;
     };
