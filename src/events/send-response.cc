@@ -11,6 +11,7 @@
 #include "misc/fd.hh"
 #include "misc/unistd.hh"
 #include "register.hh"
+#include "vhost/dispatcher.hh"
 
 namespace http
 {
@@ -97,11 +98,16 @@ namespace http
     {
         if (res_->headers["Connection"] == "keep-alive")
         {
-            auto conn = conn_;
-            event_register.register_event<RecvRequestEW, shared_conn>(
-                std::move(conn));
+            if (auto request = Request::parse(conn_))
+                dispatcher.dispatch(request, conn_);
+            else
+            {
+                auto conn = conn_;
+                event_register.register_event<RecvRequestEW, shared_conn>(
+                    std::move(conn));
+            }
         }
-        http::event_register.unregister_ew(this);
+        event_register.unregister_ew(this);
     }
 
     void SendResponseEW::operator()()
