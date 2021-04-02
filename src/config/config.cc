@@ -193,7 +193,8 @@ namespace http
                 throw InitializationError("Empty auth");
             for (std::string user : parsed["auth_basic_users"])
             {
-                const std::regex auth(".+:.+");
+                // TODO: non gready username
+                const std::regex auth("^[\x17-\x7F]+:[\x17-\x7F]+$");
                 if (!std::regex_match(user, auth))
                     throw InitializationError(
                         "Basic users' syntax must be username:password");
