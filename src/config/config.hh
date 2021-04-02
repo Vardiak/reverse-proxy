@@ -23,6 +23,7 @@ namespace http
         std::vector<std::string> proxy_remove_header;
         std::map<std::string, std::string> set_header;
         std::vector<std::string> remove_header;
+        std::optional<float> timeout;
     };
 
     /**
@@ -54,6 +55,7 @@ namespace http
         std::string ssl_key;
         bool default_vhost = false;
         std::optional<VHostProxyPass> proxy_pass;
+        bool auto_index = false;
     };
 
     struct UpstreamHostConfig
@@ -76,6 +78,22 @@ namespace http
         std::vector<UpstreamHostConfig> hosts;
     };
 
+    struct Timeout
+    {
+        Timeout() = default;
+        Timeout(const Timeout &) = default;
+        Timeout &operator=(const Timeout &) = default;
+        Timeout(Timeout &&) = default;
+        Timeout &operator=(Timeout &&) = default;
+
+        ~Timeout() = default;
+
+        std::optional<float> keep_alive;
+        std::optional<float> transaction;
+        std::optional<unsigned int> throughput_val;
+        std::optional<float> throughput_time;
+    };
+
     /**
      * \struct ServerConfig
      * \brief Value object storing the server configuration.
@@ -95,6 +113,7 @@ namespace http
 
         std::vector<VHostConfig> vhosts;
         std::map<std::string, UpstreamConfig> upstreams;
+        std::optional<Timeout> timeout;
     };
 
     /**
@@ -107,5 +126,8 @@ namespace http
     struct VHostProxyPass parse_proxy_pass(const json &parsed);
     struct VHostConfig parse_vhost(const json &parsed, bool &default_vhost);
     struct UpstreamConfig parse_upstream(const json &parsed);
-    struct ServerConfig parse_configuration(const std::string &path);
+    struct Timeout parse_timeout(const json &parsed);
+    void parse_configuration(const std::string &path);
+
+    extern ServerConfig server_config;
 } // namespace http

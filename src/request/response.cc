@@ -35,7 +35,7 @@ namespace http
 
         set_date();
 
-        if (req.method != METHOD::HEAD)
+        if (req.method != "HEAD")
             body = req.target;
         else
         {

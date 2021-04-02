@@ -15,4 +15,16 @@ namespace http
 
         return ew;
     }
+
+    template <typename... Args>
+    std::shared_ptr<EventTimer>
+    EventWatcherRegistry::register_timer(Args &&...args)
+    {
+        auto et = std::make_shared<EventTimer>(std::forward<Args>(args)...);
+
+        event_timers_[et.get()] = et;
+        loop_.register_timer(et.get());
+
+        return et;
+    }
 } // namespace http

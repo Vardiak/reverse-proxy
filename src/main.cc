@@ -42,12 +42,11 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    http::ServerConfig server_config;
     try
     {
-        server_config = http::parse_configuration(argv[i]);
+        http::parse_configuration(argv[i]);
 
-        for (auto &[key, value] : server_config.upstreams)
+        for (auto &[key, value] : http::server_config.upstreams)
         {
             http::shared_upstream upstream =
                 std::make_shared<http::Upstream>(value);
@@ -56,7 +55,7 @@ int main(int argc, char **argv)
             http::upstreams_map[key] = upstream;
         }
 
-        for (auto vhost_config : server_config.vhosts)
+        for (auto vhost_config : http::server_config.vhosts)
         {
             auto vhost = http::VHostFactory::Create(vhost_config);
 

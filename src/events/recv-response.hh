@@ -22,14 +22,14 @@ namespace http
          * \brief Create a RecvResponse from the shared_connection.
          */
         explicit RecvResponseEW(shared_socket sock,
-                                std::function<void(shared_res)> fn)
-            : EventWatcher(sock->fd_get()->fd_, EV_READ)
-            , sock_(sock)
-            , callback_(fn)
-        {}
+                                std::function<void(shared_res)> fn,
+                                std::shared_ptr<EventTimer> timeout);
+
+        ~RecvResponseEW();
 
         static void start(shared_socket sock,
-                          std::function<void(shared_res)> fn);
+                          std::function<void(shared_res)> fn,
+                          std::shared_ptr<EventTimer> timeout);
 
         void send_error_response();
 
@@ -46,6 +46,7 @@ namespace http
          */
         shared_socket sock_;
         std::function<void(shared_res)> callback_;
+        std::shared_ptr<EventTimer> timeout_;
 
         std::string raw;
         size_t last = 0;

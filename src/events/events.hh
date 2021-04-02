@@ -6,6 +6,7 @@
 #pragma once
 
 #include <ev.h>
+#include <functional>
 #include <memory>
 
 #include "vhost/connection.hh"
@@ -69,5 +70,35 @@ namespace http
          * \brief Libev's io watcher.
          */
         ev_io watcher_;
+    };
+
+    class EventTimer
+    {
+    public:
+        EventTimer(EventWatcher *watcher, float time, float repeat,
+                   std::function<bool()> callback);
+
+        static std::shared_ptr<EventTimer>
+        start(EventWatcher *watcher, float time, float repeat,
+              std::function<bool()> callback);
+
+        EventTimer(const EventTimer &) = delete;
+        EventTimer &operator=(const EventTimer &) = delete;
+        EventTimer(EventTimer &&) = delete;
+        EventTimer &operator=(EventTimer &&) = delete;
+        ~EventTimer() = default;
+
+        ev_timer &timer_get() noexcept
+        {
+            return timer_;
+        }
+
+    protected:
+        static void event_callback(EV_P_ ev_timer *w, int revents);
+
+        ev_timer timer_;
+        bool expired = false;
+        std::function<bool()> callback_;
+        EventWatcher *watcher_;
     };
 } // namespace http

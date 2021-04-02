@@ -66,19 +66,89 @@ namespace http
         return res;
     }
 
-    void VHostStaticFile::respond(shared_req req,
-                                  std::shared_ptr<Connection> conn)
+    void VHostStaticFile::send_auto_index(shared_req req, shared_conn conn,
+                                          fs::path path)
+    {
+        // TODO handle HEAD
+
+        auto path_str = fs::relative(path, conf_.root).string();
+
+        if (path_str == ".")
+            path_str = "/";
+        else if (path_str.find("./") == 0)
+            path_str = path_str.substr(1);
+        else if (path_str[0] != '/')
+            path_str = '/' + path_str;
+
+        std::string body = "<!DOCTYPE html>\n";
+        body += "<html>\n";
+        body += "<head>\n";
+        body += "<meta charset=utf-8>\n";
+        body += "<title>Index of " + path_str + "</title>\n";
+        body += "</head>\n";
+        body += "<body>\n";
+        body += "<ul>\n";
+
+        std::vector<std::string> filenames = { ".." };
+
+        for (const auto &entry : fs::directory_iterator(path))
+        {
+            auto filename = entry.path().filename().string();
+            filenames.push_back(filename);
+        }
+
+        for (const auto &filename : filenames)
+        {
+            auto subpath = path_str;
+            if (subpath[subpath.size() - 1] != '/')
+                subpath += '/';
+            subpath += filename;
+
+            body +=
+                "<li><a href=\"" + subpath + "\">" + filename + "</a></li>\n";
+        }
+
+        body += "</ul>\n";
+        body += "</body>\n";
+        body += "</html>\n";
+
+        auto res = std::make_shared<Response>();
+        res->status = OK;
+        res->status_message = statusCode(OK).second;
+        res->set_date();
+
+        if (req->headers.count("Connection") != 0
+            && req->headers.at("Connection").find("close") != std::string::npos)
+            res->headers["Connection"] = "close";
+        else
+            res->headers["Connection"] = "keep-alive";
+
+        res->headers["Content-Length"] = std::to_string(body.size());
+        res->body = body;
+
+        SendResponseEW::start(conn, res);
+    }
+
+    void VHostStaticFile::respond(shared_req req, shared_conn conn)
     {
         if (!check_auth(req, conn, false))
             return;
+		
+		if (str_method.find(req->method) == str_method.end())
+            throw RequestError(METHOD_NOT_ALLOWED);
 
         auto path = normalize_URI(req->target);
 
         if (fs::is_directory(path))
         {
-            path /= conf_.default_file;
-
-            if (!fs::is_regular_file(path))
+            if (fs::is_regular_file(path / conf_.default_file))
+                path /= conf_.default_file;
+            else if (conf_.auto_index)
+            {
+                send_auto_index(req, conn, path);
+                return;
+            }
+            else
                 throw RequestError(NOT_FOUND);
         }
         else if (!fs::is_regular_file(path))

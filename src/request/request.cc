@@ -78,10 +78,7 @@ namespace http
         if (i == std::string::npos)
             throw RequestError(BAD_REQUEST);
 
-        auto str = line.substr(0, i);
-        if (str_method.find(str) == str_method.end())
-            throw RequestError(METHOD_NOT_ALLOWED);
-        auto method = str_method[str];
+        auto method = line.substr(0, i);
 
         size_t j = line.find(' ', i + 1);
         if (j == std::string::npos)
@@ -113,7 +110,7 @@ namespace http
     {
         std::string raw;
 
-        raw += method_str.at(method);
+        raw += method;
         raw += ' ';
         raw += target;
         raw += ' ';

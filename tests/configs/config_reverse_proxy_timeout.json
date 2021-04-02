@@ -1,0 +1,24 @@
+{
+    "vhosts": [
+        {
+            "ip": "0.0.0.0",
+            "port": 8000,
+            "server_name": "localhost",
+            "proxy_pass": {
+                "upstream": "rr",
+                "timeout": 1
+            }
+        }
+    ],
+    "upstreams": {
+        "rr": {
+            "method": "round-robin",
+            "hosts": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8001
+                }
+            ]
+        }
+    }
+}

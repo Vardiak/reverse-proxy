@@ -20,15 +20,15 @@ namespace http
                 host.up = false;
                 continue;
             }
-            auto req = std::make_shared<Request>(METHOD::GET,
+            auto req = std::make_shared<Request>("GET",
                                                  host.config.health, "1.1");
             req->set_date();
             req->headers["Host"] =
                 host.config.ip + ":" + std::to_string(host.config.port);
             req->headers["Connection"] = "close";
-            SendRequestEW::start(sock, req, [&host](shared_res res) {
-                host.up = res->status == OK;
-            });
+            SendRequestEW::start(
+                sock, req, std::nullopt,
+                [&host](shared_res res) { host.up = res->status == OK; });
         }
     }
 

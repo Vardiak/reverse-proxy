@@ -52,6 +52,9 @@ namespace http
         template <typename EventWatcher, typename... Args>
         std::shared_ptr<EventWatcher> register_event(Args &&...);
 
+        template <typename... Args>
+        std::shared_ptr<EventTimer> register_timer(Args &&...);
+
         /**
          * \brief Unregister a given event watcher.
          *
@@ -59,6 +62,7 @@ namespace http
          * \return If the operation was successful.
          */
         bool unregister_ew(EventWatcher *);
+        bool unregister_et(EventTimer *);
 
         /**
          * \brief Access EventWatcher in the map.
@@ -67,6 +71,7 @@ namespace http
          * \return The found EventWatcher otherwise std::nullopt.
          */
         std::optional<std::shared_ptr<EventWatcher>> at(EventWatcher *);
+        std::optional<std::shared_ptr<EventTimer>> at(EventTimer *);
 
         /**
          * \brief Launch the event loop
@@ -90,6 +95,9 @@ namespace http
          */
         std::unordered_map<EventWatcher *, std::shared_ptr<EventWatcher>>
             events_;
+
+        std::unordered_map<EventTimer *, std::shared_ptr<EventTimer>>
+            event_timers_;
     };
 
     /**

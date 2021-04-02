@@ -10,12 +10,29 @@
 
 namespace http
 {
+    RecvResponseEW::RecvResponseEW(shared_socket sock,
+                                   std::function<void(shared_res)> fn,
+                                   std::shared_ptr<EventTimer> timeout)
+        : EventWatcher(sock->fd_get()->fd_, EV_READ)
+        , sock_(sock)
+        , callback_(fn)
+        , timeout_(timeout)
+    {}
+
+    RecvResponseEW::~RecvResponseEW()
+    {
+        if (timeout_)
+            event_register.unregister_et(timeout_.get());
+    }
+
     void RecvResponseEW::start(shared_socket sock,
-                               std::function<void(shared_res)> fn)
+                               std::function<void(shared_res)> fn,
+                               std::shared_ptr<EventTimer> timeout)
     {
         http::event_register.register_event<RecvResponseEW, shared_socket,
-                                            std::function<void(shared_res)>>(
-            std::move(sock), std::move(fn));
+                                            std::function<void(shared_res)>,
+                                            std::shared_ptr<EventTimer>>(
+            std::move(sock), std::move(fn), std::move(timeout));
     }
 
     void RecvResponseEW::send_error_response()

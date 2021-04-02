@@ -1,0 +1,16 @@
+{
+    "vhosts": [
+        {
+            "ip": "0.0.0.0",
+            "port": 8000,
+            "server_name": "localhost",
+            "root": "./tests/static"
+        }
+    ],
+    "timeout": {
+        "keep_alive": 5,
+        "transaction": 5,
+        "throughput_val": 5,
+        "throughput_time": 1
+    }
+}
