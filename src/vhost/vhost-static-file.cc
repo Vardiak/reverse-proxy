@@ -77,6 +77,8 @@ namespace http
             path_str = "/";
         else if (path_str.find("./") == 0)
             path_str = path_str.substr(1);
+        else if (path_str[0] != '/')
+            path_str = '/' + path_str;
 
         std::string body = "<!DOCTYPE html>\n";
         body += "<html>\n";

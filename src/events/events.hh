@@ -6,6 +6,7 @@
 #pragma once
 
 #include <ev.h>
+#include <functional>
 #include <memory>
 
 #include "vhost/connection.hh"
