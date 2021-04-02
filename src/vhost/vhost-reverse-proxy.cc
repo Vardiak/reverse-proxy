@@ -110,6 +110,33 @@ namespace http
         req->headers["Forwarded"] = res;
     }
 
+    bool VHostReverseProxy::remove_headers(shared_req &req)
+    {
+        bool res = true;
+        const std::vector<std::string> hop_headers = {
+            "Keep-Alive",        "Transfer-Encoding", "TE",
+            "Trailer",           "Upgrade",           "Proxy-Authorization",
+            "Proxy-Authenticate"
+        };
+        for (auto &header : hop_headers)
+            req->headers.erase(header);
+
+        if (req->headers.count("Connection") == 0)
+            return true;
+
+        const std::vector<std::string> connection_headers =
+            split(req->headers["Connection"], ',');
+        for (auto header : connection_headers)
+        {
+            if (header[0] == ' ')
+                header = header.substr(1);
+            req->headers.erase(header);
+            if (header == "close")
+                res = false;
+        }
+        return res;
+    }
+
     void VHostReverseProxy::respond(shared_req req,
                                     std::shared_ptr<Connection> conn)
     {
@@ -121,8 +148,7 @@ namespace http
         if (!backend_sock)
             throw RequestError(BAD_GATEWAY);
 
-        bool keep_alive = req->headers.count("Connection") == 0
-            || req->headers["Connection"].find("close") == std::string::npos;
+        bool keep_alive = remove_headers(req);
 
         req->headers["Connection"] = "close";
 

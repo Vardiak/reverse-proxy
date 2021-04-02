@@ -86,10 +86,11 @@ namespace http
 
         std::string target = line.substr(i + 1, j - i - 1);
         std::smatch sm;
-        const std::regex url("(?:https?://[a-zA-Z0-9.]+(?::[0-9]*)?)?(/.*)");
+        const std::regex url("(?:https?://([a-zA-Z0-9.]+(?::[0-9]*)?))?(/.*)");
         if (!std::regex_search(target, sm, url))
             throw RequestError(BAD_REQUEST);
-        target = sm[1];
+        std::string host = sm[1];
+        target = sm[2];
 
         std::string http_version = line.substr(j + 1);
         const std::regex http_regex("HTTP/[0-9]\\.[0-9]");
@@ -102,8 +103,12 @@ namespace http
         if (http_version[7] != '1')
             throw RequestError(UPGRADE_REQUIRED);
 
-        return std::make_shared<Request>(method, target,
-                                         http_version.substr(5));
+        auto req =
+            std::make_shared<Request>(method, target, http_version.substr(5));
+
+        if (!host.empty())
+            req->headers["Host"] = host;
+        return req;
     }
 
     std::string Request::to_string() const
@@ -127,5 +132,4 @@ namespace http
 
         return raw;
     }
-
 } // namespace http

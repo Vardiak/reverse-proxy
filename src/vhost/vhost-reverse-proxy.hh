@@ -44,6 +44,7 @@ namespace http
         void respond(shared_req, std::shared_ptr<Connection>) final;
 
         static shared_socket connect_host(const UpstreamHostConfig &config);
+        static bool remove_headers(shared_req &req);
 
         shared_upstream upstream;
     };

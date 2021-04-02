@@ -14,6 +14,9 @@ def hello_world():
 def forwarded():
     return str(flask.request.headers['Forwarded'])
 
+@app.route('/hop_by_hop')
+def hop_by_hop():
+    return str(flask.request.headers)
 
 @app.route('/ip')
 def ip():

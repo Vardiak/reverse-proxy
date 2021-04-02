@@ -39,6 +39,14 @@ class TestRequests(unittest.TestCase):
         res = re.match("HTTP\/1\.1 200[\s\S]+\r\n\r\ngood\n", response)
         self.assertIsNotNone(res)
 
+    def test_absolute_form(self):
+        self.socket.connect(("localhost", 8000))
+        req = "GET http://localhost:8080/index.html HTTP/1.1\r\n\r\n"
+        self.socket.send(req.encode())
+        response = recvall(self.socket, 2)
+        res = re.match("HTTP\/1\.1 200[\s\S]+\r\n\r\ngood\n", response)
+        self.assertIsNotNone(res)
+
     def test_hostname(self):
         self.socket.connect(("localhost", 8000))
         req = "GET /index.html HTTP/1.1\r\nHost: localhost\r\n\r\n"
@@ -334,6 +342,10 @@ class ReverseProxy(unittest.TestCase):
         a = requests.delete('http://localhost:8000/method')
         self.assertEqual(a.text, 'did it work?')
 
+    def test_hop_by_hop(self):
+        a = requests.get('http://127.0.0.1:8000/hop_by_hop', headers={'Host': 'localhost2', 'Upgrade': 'salut'})
+        req = re.match('Upgrade: .*', a.text)
+        self.assertEqual(req, None)
 
 
 if __name__ == '__main__':
