@@ -95,6 +95,14 @@ class TestRequests(unittest.TestCase):
             self.assertTrue(False)
         except:
             pass
+
+    def test_2_in_1(self):
+        self.socket.connect(("localhost", 8000))
+        req = "GET /index.html HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\nGET /index.html HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"
+        self.socket.send(req.encode())
+        response = recvall(self.socket, 4)
+        res = re.match("HTTP\/1\.1 200[\s\S]+HTTP\/1\.1 200[\s\S]+", response)
+        self.assertIsNotNone(res)
     
     def test_close_during_answer(self):
         self.socket.connect(("localhost", 8000))
