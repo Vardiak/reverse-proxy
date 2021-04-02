@@ -93,16 +93,25 @@ namespace http
                 });
         }
 
-        ssize_t read = conn_->sock_->recv(buffer, sizeof(buffer));
-        throughput_bytes += read;
+        try
+        {
+            ssize_t read = conn_->sock_->recv(buffer, sizeof(buffer));
 
-        if (read == 0)
+            throughput_bytes += read;
+
+            if (read == 0)
+            {
+                event_register.unregister_ew(this);
+                return;
+            }
+
+            conn_->raw.append(buffer, read);
+        }
+        catch (const std::exception &e)
         {
             event_register.unregister_ew(this);
             return;
         }
-
-        conn_->raw.append(buffer, read);
 
         try
         {
