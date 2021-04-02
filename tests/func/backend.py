@@ -23,3 +23,7 @@ def ip():
 def timeout():
     time.sleep(1.1)
     return str('did it work?')
+
+@app.route('/method', methods=["DELETE"])
+def method():
+    return str('did it work?')

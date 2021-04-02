@@ -48,6 +48,15 @@ class TestRequests(unittest.TestCase):
 
         self.assertIsNotNone(res)
 
+    def test_bad_method(self):
+        self.socket.connect(("localhost", 8000))
+        req = "DELETE /index.html HTTP/1.1\r\nHost: localhost\r\n\r\n"
+        self.socket.send(req.encode())
+        response = recvall(self.socket, 2)
+        res = re.match("HTTP\/1\.1 405[\s\S]+", response)
+
+        self.assertIsNotNone(res)
+
     def test_requests(self):
         a = requests.get('http://localhost:8000')
         self.assertEqual(a.text, 'good\n')
@@ -321,6 +330,9 @@ class ReverseProxy(unittest.TestCase):
         a = requests.get('http://localhost:8000/forwarded')
         self.assertEqual(a.text, 'for=127.0.0.1;host=localhost:8000;proto=http')
 
+    def test_method(self):
+        a = requests.delete('http://localhost:8000/method')
+        self.assertEqual(a.text, 'did it work?')
 
 
 

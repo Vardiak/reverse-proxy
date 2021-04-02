@@ -69,48 +69,50 @@ namespace http
     void VHostStaticFile::send_auto_index(shared_req req, shared_conn conn,
                                           fs::path path)
     {
-        // TODO handle HEAD
-
-        auto path_str = fs::relative(path, conf_.root).string();
-
-        if (path_str == ".")
-            path_str = "/";
-        else if (path_str.find("./") == 0)
-            path_str = path_str.substr(1);
-        else if (path_str[0] != '/')
-            path_str = '/' + path_str;
-
-        std::string body = "<!DOCTYPE html>\n";
-        body += "<html>\n";
-        body += "<head>\n";
-        body += "<meta charset=utf-8>\n";
-        body += "<title>Index of " + path_str + "</title>\n";
-        body += "</head>\n";
-        body += "<body>\n";
-        body += "<ul>\n";
-
-        std::vector<std::string> filenames = { ".." };
-
-        for (const auto &entry : fs::directory_iterator(path))
+        std::string body;
+        if (req->method != "HEAD")
         {
-            auto filename = entry.path().filename().string();
-            filenames.push_back(filename);
+            auto path_str = fs::relative(path, conf_.root).string();
+
+            if (path_str == ".")
+                path_str = "/";
+            else if (path_str.find("./") == 0)
+                path_str = path_str.substr(1);
+            else if (path_str[0] != '/')
+                path_str = '/' + path_str;
+
+            body += "<!DOCTYPE html>\n";
+            body += "<html>\n";
+            body += "<head>\n";
+            body += "<meta charset=utf-8>\n";
+            body += "<title>Index of " + path_str + "</title>\n";
+            body += "</head>\n";
+            body += "<body>\n";
+            body += "<ul>\n";
+
+            std::vector<std::string> filenames = { ".." };
+
+            for (const auto &entry : fs::directory_iterator(path))
+            {
+                auto filename = entry.path().filename().string();
+                filenames.push_back(filename);
+            }
+
+            for (const auto &filename : filenames)
+            {
+                auto subpath = path_str;
+                if (subpath[subpath.size() - 1] != '/')
+                    subpath += '/';
+                subpath += filename;
+
+                body += "<li><a href=\"" + subpath + "\">" + filename
+                    + "</a></li>\n";
+            }
+
+            body += "</ul>\n";
+            body += "</body>\n";
+            body += "</html>\n";
         }
-
-        for (const auto &filename : filenames)
-        {
-            auto subpath = path_str;
-            if (subpath[subpath.size() - 1] != '/')
-                subpath += '/';
-            subpath += filename;
-
-            body +=
-                "<li><a href=\"" + subpath + "\">" + filename + "</a></li>\n";
-        }
-
-        body += "</ul>\n";
-        body += "</body>\n";
-        body += "</html>\n";
 
         auto res = std::make_shared<Response>();
         res->status = OK;
@@ -133,8 +135,8 @@ namespace http
     {
         if (!check_auth(req, conn, false))
             return;
-		
-		if (str_method.find(req->method) == str_method.end())
+
+        if (str_method.find(req->method) == str_method.end())
             throw RequestError(METHOD_NOT_ALLOWED);
 
         auto path = normalize_URI(req->target);
