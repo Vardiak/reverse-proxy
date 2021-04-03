@@ -19,9 +19,10 @@ Test(response_parse_double, full)
     cr_assert(Request::parse(conn) == nullptr);
     cr_assert(conn->req == nullptr);
 
-    conn->raw += "GET /workspaces/sws/tests/static/index.html HTTP/1.1\r\nHost: "
-                 "localhost\r\n\r\nHEAD /workspaces/sws/tests/static/index.html "
-                 "HTTP/1.1\r\nHost: localhost\r\n\r\n";
+    conn->raw +=
+        "GET /workspaces/sws/tests/static/index.html HTTP/1.1\r\nHost: "
+        "localhost\r\n\r\nHEAD /workspaces/sws/tests/static/index.html "
+        "HTTP/1.1\r\nHost: localhost\r\n\r\n";
 
     auto r1 = Request::parse(conn);
     auto req1 = r1;
