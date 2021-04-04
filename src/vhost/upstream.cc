@@ -20,8 +20,8 @@ namespace http
                 host.up = false;
                 continue;
             }
-            auto req = std::make_shared<Request>("GET",
-                                                 host.config.health, "1.1");
+            auto req =
+                std::make_shared<Request>("GET", host.config.health, "1.1");
             req->set_date();
             req->headers["Host"] =
                 host.config.ip + ":" + std::to_string(host.config.port);
